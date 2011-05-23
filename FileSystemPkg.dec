@@ -1,0 +1,17 @@
+## @file
+#
+# FileSystemPkg - FileSystemPkg.dec
+#
+# Copyright (c) 2011, Colin Drake <colin.f.drake@gmail.com>
+#
+# This program and the accompanying materials are licensed and made available
+# under the terms and conditions of the Software License Agreement which
+# accompanies this distribution.
+#
+##
+
+[Defines]
+  DEC_VERSION     = 0x00010005
+  PACKAGE_NAME    = FfsPkg
+  PACKAGE_GUID    = 88c7e40a-856d-11e0-bbed-705ab61e56c3
+  PACKAGE_VERSION = 0.01
