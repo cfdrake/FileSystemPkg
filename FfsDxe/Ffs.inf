@@ -1,0 +1,51 @@
+## @file
+#
+# FileSystemPkg - Ffs.inf
+#
+# Copyright (c) 2011, Colin Drake <colin.f.drake@gmail.com>
+#
+# This program and the accompanying materials are licensed and made available
+# under the terms and conditions of the Software License Agreement which
+# accompanies this distribution.
+#
+##
+
+[Defines]
+  INF_VERSION     = 0x00010005
+  BASE_NAME       = Ffs
+  FILE_GUID       = faf5868e-8673-11e0-956f-705ab61e56c3
+  MODULE_TYPE     = UEFI_DRIVER
+  VERSION_STRING  = 0.01
+  ENTRY_POINT     = FfsEntryPoint
+
+[Sources]
+  ComponentName.c
+  Ffs.h
+  Ffs.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiRuntimeServicesTableLib
+  UefiBootServicesTableLib
+  MemoryAllocationLib
+  BaseMemoryLib
+  BaseLib
+  UefiLib
+  UefiDriverEntryPoint
+  DebugLib
+  PcdLib
+
+[Guids]
+  gEfiFileInfoGuid
+  gEfiFileSystemInfoGuid
+  gEfiFileSystemVolumeLabelInfoIdGuid
+
+[Protocols]
+  gEfiSimpleFileSystemProtocolGuid
+  gEfiFirmwareFileSystemProtocolGuid
+
+[Pcd]
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultLang
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLang
