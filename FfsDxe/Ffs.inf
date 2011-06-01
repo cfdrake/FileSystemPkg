@@ -1,51 +1,54 @@
 ## @file
 #
-# FileSystemPkg - Ffs.inf
-#
-# Copyright (c) 2011, Colin Drake <colin.f.drake@gmail.com>
-#
-# This program and the accompanying materials are licensed and made available
-# under the terms and conditions of the Software License Agreement which
-# accompanies this distribution.
-#
 ##
 
 [Defines]
-  INF_VERSION     = 0x00010005
-  BASE_NAME       = Ffs
-  FILE_GUID       = faf5868e-8673-11e0-956f-705ab61e56c3
-  MODULE_TYPE     = UEFI_DRIVER
-  VERSION_STRING  = 0.01
-  ENTRY_POINT     = FfsEntryPoint
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = FfsDxe
+  FILE_GUID                      = 720fb2a6-86d5-11e0-a827-705ab61e56c3
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 1.0
+
+  ENTRY_POINT                    = InitializeFfs
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64 IPF EBC
+#
+#  DRIVER_BINDING                =  gFfsDriverBinding           
+#  COMPONENT_NAME                =  gFfsComponentName           
+#
 
 [Sources]
   ComponentName.c
-  Ffs.h
   Ffs.c
+  Ffs.h
+  EntryPoint.c
+
 
 [Packages]
   MdePkg/MdePkg.dec
+  UnixPkg/UnixPkg.dec
+
 
 [LibraryClasses]
-  UefiRuntimeServicesTableLib
   UefiBootServicesTableLib
   MemoryAllocationLib
   BaseMemoryLib
-  BaseLib
   UefiLib
   UefiDriverEntryPoint
+  BaseLib
   DebugLib
-  PcdLib
+
 
 [Guids]
+  gEfiFileSystemVolumeLabelInfoIdGuid
   gEfiFileInfoGuid
   gEfiFileSystemInfoGuid
-  gEfiFileSystemVolumeLabelInfoIdGuid
+  gEfiFfsGuid
+
 
 [Protocols]
   gEfiSimpleFileSystemProtocolGuid
-  gEfiFirmwareFileSystemProtocolGuid
 
-[Pcd]
-  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultLang
-  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLang
