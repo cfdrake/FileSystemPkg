@@ -13,6 +13,38 @@ EFI_DRIVER_BINDING_PROTOCOL gFfsDriverBinding = {
   NULL
 };
 
+/* Local variables */
+UINTN       NumVolumes;
+EFI_HANDLE  *VolumeHandleBuffer;
+
+EFI_STATUS
+UpdateVolumeHandleBuffer()
+/*++
+
+Routine Description:
+
+  Find how many FirmwareVolume2Protocol instances are in the system and grab a
+  pointer to an EFI_HANDLE buffer of them all.
+
+Arguments:
+
+Returns:
+  
+--*/
+{
+  EFI_STATUS Status;
+
+  Status = gBS->LocateHandleBuffer (
+                  ByProtocol,
+                  &gEfiFirmwareVolume2ProtocolGuid,
+                  NULL,
+                  &NumVolumes,
+                  &VolumeHandleBuffer
+                  );
+
+  return Status;
+}
+
 EFI_STATUS
 EFIAPI
 FfsDriverBindingSupported (

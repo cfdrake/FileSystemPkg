@@ -51,4 +51,5 @@
 
 [Protocols]
   gEfiSimpleFileSystemProtocolGuid
+  gEfiFirmwareVolume2ProtocolGuid
 

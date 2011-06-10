@@ -10,6 +10,7 @@
 #include <Guid/FileInfo.h>
 #include <Guid/FileSystemVolumeLabelInfo.h>
 #include <Protocol/SimpleFileSystem.h>
+#include <Protocol/FirmwareVolume2.h>
 
 #include <Library/DebugLib.h>
 #include <Library/BaseLib.h>
