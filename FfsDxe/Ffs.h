@@ -19,7 +19,6 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
-#include "UnixDxe.h"
 
 extern EFI_DRIVER_BINDING_PROTOCOL gFfsDriverBinding;
 extern EFI_COMPONENT_NAME_PROTOCOL gFfsComponentName;
