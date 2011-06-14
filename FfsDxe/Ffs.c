@@ -26,7 +26,7 @@ typedef struct {
   EFI_FIRMWARE_VOLUME2_PROTOCOL   *FirmwareVolume2;
 } FILE_SYSTEM_PRIVATE_DATA;
 
-// ...
+#define FILE_SYSTEM_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_SYSTEM_PRIVATE_DATA, SimpleFileSystem, FILE_SYSTEM_PRIVATE_DATA_SIGNATURE)
 
 //
 // Protocol template
