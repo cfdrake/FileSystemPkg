@@ -18,10 +18,12 @@
 // Private data structures
 //
 
-// ...
+#define FILE_SYSTEM_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 't')
 
 typedef struct {
-  // ...
+  UINT32                          Signature;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL SimpleFileSystem;
+  EFI_FIRMWARE_VOLUME2_PROTOCOL   *FirmwareVolume2;
 } FILE_SYSTEM_PRIVATE_DATA;
 
 // ...

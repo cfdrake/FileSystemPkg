@@ -6,10 +6,10 @@
   INF_VERSION                    = 0x00010005
   BASE_NAME                      = FfsDxe
   FILE_GUID                      = 720fb2a6-86d5-11e0-a827-705ab61e56c3
-  MODULE_TYPE                    = UEFI_DRIVER
+  MODULE_TYPE                    = DXE_DRIVER
   VERSION_STRING                 = 1.0
 
-  ENTRY_POINT                    = InitializeFfs
+  ENTRY_POINT                    = InitializeFfsFileSystem
 
 #
 # The following information is for reference only and not required by the build tools.
@@ -21,10 +21,7 @@
 #
 
 [Sources]
-  ComponentName.c
   Ffs.c
-  Ffs.h
-  EntryPoint.c
 
 
 [Packages]
@@ -53,3 +50,5 @@
   gEfiSimpleFileSystemProtocolGuid
   gEfiFirmwareVolume2ProtocolGuid
 
+[Depex]
+  TRUE
