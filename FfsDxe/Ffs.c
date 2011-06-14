@@ -6,7 +6,7 @@
 
 #include <PiDxe.h>
 #include <Protocol/SimpleFileSystem.h>
-#include <Protocol/FirmwareVolume.h>
+#include <Protocol/FirmwareVolume2.h>
 #include <Library/BaseLib.h>
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
