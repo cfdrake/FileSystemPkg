@@ -48,13 +48,14 @@ FfsNotificationEvent (
   )
 /**
 
-  Hello.
+  Callback function, notified when new FV2 volumes are mounted in the system.
 
   @param Event
   @param Context
 
 **/
 {
+  DEBUG ((EFI_D_INFO, "New FV Volume detected!\n"));
   return;
 }
 
@@ -66,12 +67,20 @@ InitializeFfsFileSystem (
   )
 /**
 
-  Hello.
+  Entry point for the driver.
 
   @param ImageHandle
   @param SystemTable
 
 **/
 {
-  return EFI_UNSUPPORTED;
+  EfiCreateProtocolNotifyEvent (
+    &gEfiFirmwareVolume2ProtocolGuid,
+    TPL_CALLBACK,
+    FfsNotificationEvent,
+    NULL,
+    &mFfsRegistration
+    );
+
+  return EFI_SUCCESS;
 }
