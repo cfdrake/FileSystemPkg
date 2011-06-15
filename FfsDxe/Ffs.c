@@ -173,7 +173,14 @@ FfsFlush (IN EFI_FILE_PROTOCOL *This)
 
 EFI_EVENT mFfsRegistration;
 
-// ...
+FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
+  FILE_SYSTEM_PRIVATE_DATA_SIGNATURE,
+  {
+    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION,
+    FfsOpenVolume
+  },
+  NULL
+};
 
 //
 // Global functions
