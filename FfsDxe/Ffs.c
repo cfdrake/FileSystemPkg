@@ -233,9 +233,11 @@ FfsNotificationEvent (
                     (VOID **)&SimpleFileSystem
                     );
 
-    if (EFI_ERROR (Status)) {
+    if (!EFI_ERROR (Status)) {
       continue;
     }
+
+    DEBUG ((EFI_D_INFO, "*** Check\n"));
 
     // Allocate space for the private data structure. If this fails, move on to
     // the next entry.
@@ -248,14 +250,17 @@ FfsNotificationEvent (
       continue;
     }
 
-    // Retrieve the SimpleFileSystem protocol
+    DEBUG ((EFI_D_INFO, "*** Alloc\n"));
+
+    // Retrieve the FV2 protocol
     Status = gBS->HandleProtocol (
                     HandleBuffer,
-                    &gEfiSimpleFileSystemProtocolGuid,
+                    &gEfiFirmwareVolume2ProtocolGuid,
                     (VOID **)&Private->FirmwareVolume2
                     );
 
     ASSERT_EFI_ERROR (Status);
+    DEBUG ((EFI_D_INFO, "*** Retr\n"));
 
     // Fill out the SimpleFileSystem private data structure
     // TODO: ...nothing?
