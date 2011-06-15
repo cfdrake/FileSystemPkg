@@ -201,8 +201,75 @@ FfsNotificationEvent (
 
 **/
 {
-  DEBUG ((EFI_D_INFO, "New FV Volume detected!\n"));
-  return;
+  UINTN                           BufferSize;
+  EFI_STATUS                      Status;
+  EFI_HANDLE                      *HandleBuffer;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *SimpleFileSystem;
+  FILE_SYSTEM_PRIVATE_DATA        *Private;
+
+  while (TRUE) {
+    // Grab the next FV2. If this is there are no more in the buffer, exit the
+    // while loop and return.
+    BufferSize = sizeof (HandleBuffer);
+    Status = gBS->LocateHandle (
+                    ByRegisterNotify,
+                    &gEfiFirmwareVolume2ProtocolGuid,
+                    mFfsRegistration,
+                    &BufferSize,
+                    HandleBuffer
+                    );
+
+    if (EFI_ERROR (Status)) {
+      break;
+    }
+
+    DEBUG ((EFI_D_INFO, "New FV2 detected!\n"));
+
+    // Check to see if SimpleFileSystem is already installed on this handle. If
+    // the protocol is already installed, skip to the next entry.
+    Status = gBS->HandleProtocol (
+                    &HandleBuffer,
+                    &gEfiSimpleFileSystemProtocolGuid,
+                    (VOID **)&SimpleFileSystem
+                    );
+
+    if (EFI_ERROR (Status)) {
+      continue;
+    }
+
+    // Allocate space for the private data structure. If this fails, move on to
+    // the next entry.
+    Private = AllocateCopyPool (
+                sizeof (FILE_SYSTEM_PRIVATE_DATA),
+                &mFileSystemPrivateDataTemplate
+                );
+
+    if (Private == NULL) {
+      continue;
+    }
+
+    // Retrieve the SimpleFileSystem protocol
+    Status = gBS->HandleProtocol (
+                    HandleBuffer,
+                    &gEfiSimpleFileSystemProtocolGuid,
+                    (VOID **)&Private->FirmwareVolume2
+                    );
+
+    ASSERT_EFI_ERROR (Status);
+
+    // Fill out the SimpleFileSystem private data structure
+    // TODO: ...nothing?
+
+    // Install SimpleFileSystem on the handle
+    Status = gBS->InstallMultipleProtocolInterfaces (
+                    HandleBuffer,
+                    &gEfiSimpleFileSystemProtocolGuid,
+                    &Private->SimpleFileSystem,
+                    NULL
+                    );
+
+    DEBUG ((EFI_D_INFO, "Successfully installed SFS on FV2!\n"));
+  }
 }
 
 EFI_STATUS
