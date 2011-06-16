@@ -203,7 +203,7 @@ FfsNotificationEvent (
 {
   UINTN                           BufferSize;
   EFI_STATUS                      Status;
-  EFI_HANDLE                      *HandleBuffer;
+  EFI_HANDLE                      HandleBuffer;
   EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *SimpleFileSystem;
   FILE_SYSTEM_PRIVATE_DATA        *Private;
 
@@ -216,19 +216,17 @@ FfsNotificationEvent (
                     &gEfiFirmwareVolume2ProtocolGuid,
                     mFfsRegistration,
                     &BufferSize,
-                    HandleBuffer
+                    &HandleBuffer
                     );
 
     if (EFI_ERROR (Status)) {
       break;
     }
 
-    DEBUG ((EFI_D_INFO, "New FV2 detected!\n"));
-
     // Check to see if SimpleFileSystem is already installed on this handle. If
     // the protocol is already installed, skip to the next entry.
     Status = gBS->HandleProtocol (
-                    &HandleBuffer,
+                    HandleBuffer,
                     &gEfiSimpleFileSystemProtocolGuid,
                     (VOID **)&SimpleFileSystem
                     );
@@ -236,8 +234,6 @@ FfsNotificationEvent (
     if (!EFI_ERROR (Status)) {
       continue;
     }
-
-    DEBUG ((EFI_D_INFO, "*** Check\n"));
 
     // Allocate space for the private data structure. If this fails, move on to
     // the next entry.
@@ -250,8 +246,6 @@ FfsNotificationEvent (
       continue;
     }
 
-    DEBUG ((EFI_D_INFO, "*** Alloc\n"));
-
     // Retrieve the FV2 protocol
     Status = gBS->HandleProtocol (
                     HandleBuffer,
@@ -260,20 +254,17 @@ FfsNotificationEvent (
                     );
 
     ASSERT_EFI_ERROR (Status);
-    DEBUG ((EFI_D_INFO, "*** Retr\n"));
 
     // Fill out the SimpleFileSystem private data structure
     // TODO: ...nothing?
 
     // Install SimpleFileSystem on the handle
     Status = gBS->InstallMultipleProtocolInterfaces (
-                    HandleBuffer,
+                    &HandleBuffer,
                     &gEfiSimpleFileSystemProtocolGuid,
                     &Private->SimpleFileSystem,
                     NULL
                     );
-
-    DEBUG ((EFI_D_INFO, "Successfully installed SFS on FV2!\n"));
   }
 }
 
