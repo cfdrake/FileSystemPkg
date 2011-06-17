@@ -29,15 +29,7 @@ either expressed or implied, of Colin Drake.
 
 **/
 
-#include <PiDxe.h>
-#include <Protocol/SimpleFileSystem.h>
-#include <Protocol/FirmwareVolume2.h>
-#include <Library/BaseLib.h>
-#include <Library/DebugLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/UefiLib.h>
-#include <Library/MemoryAllocationLib.h>
+#include "Ffs.h"
 
 //
 // Private data structures
@@ -267,6 +259,8 @@ FfsNotificationEvent (
                     &Private->SimpleFileSystem,
                     NULL
                     );
+
+    DEBUG ((EFI_D_INFO, "Installed SFS on FV2!\n"));
   }
 }
 
