@@ -196,8 +196,10 @@ FfsNotificationEvent (
 
   Callback function, notified when new FV2 volumes are mounted in the system.
 
-  @param Event
-  @param Context
+  @returns Nothing.
+
+  @param Event   The EFI_EVENT that triggered this function call.
+  @param Context The context in which this function was called.
 
 **/
 {
@@ -278,8 +280,10 @@ InitializeFfsFileSystem (
 
   Entry point for the driver.
 
-  @param ImageHandle
-  @param SystemTable
+  @returns EFI status code.
+
+  @param ImageHandle ImageHandle of the loaded driver.
+  @param SystemTable A Pointer to the EFI System Table.
 
 **/
 {
