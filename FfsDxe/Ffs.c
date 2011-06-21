@@ -299,6 +299,8 @@ FfsNotificationEvent (
                     NULL
                     );
 
+    ASSERT_EFI_ERROR (Status);
+
     DEBUG ((EFI_D_INFO, "Installed SFS on FV2!\n"));
   }
 }
