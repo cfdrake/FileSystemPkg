@@ -42,4 +42,95 @@ either expressed or implied, of Colin Drake.
 #include <Library/UefiLib.h>
 #include <Library/MemoryAllocationLib.h>
 
+typedef struct FILE_PRIVATE_DATA;
+typedef struct FILE_SYSTEM_PRIVATE_DATA;
+
+EFI_STATUS
+EFIAPI
+FfsOpenVolume (
+  IN EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *This,
+  OUT EFI_FILE_PROTOCOL               **Root
+  )
+;
+
+EFI_STATUS
+EFIAPI
+FfsOpen (
+  IN  EFI_FILE_PROTOCOL *This,
+  OUT EFI_FILE_PROTOCOL **NewHandle,
+  IN  CHAR16            *FileName,
+  IN  UINT64            OpenMode,
+  IN  UINT64            Attributes
+  )
+;
+
+EFI_STATUS
+EFIAPI
+FfsClose (IN EFI_FILE_PROTOCOL *This)
+;
+
+EFI_STATUS
+EFIAPI
+FfsDelete (IN EFI_FILE_PROTOCOL *This)
+;
+
+EFI_STATUS
+EFIAPI
+FfsRead (
+  IN EFI_FILE_PROTOCOL *This,
+  IN OUT UINTN *BufferSize,
+  OUT VOID *Buffer
+  )
+;
+
+EFI_STATUS
+EFIAPI
+FfsWrite (
+  IN EFI_FILE_PROTOCOL *This,
+  IN OUT UINTN *BufferSize,
+  IN VOID *Buffer
+  )
+;
+
+EFI_STATUS
+EFIAPI
+FfsGetPosition (
+  IN EFI_FILE_PROTOCOL *This,
+  OUT UINT64 *Position
+  )
+;
+
+EFI_STATUS
+EFIAPI
+FfsSetPosition (
+  IN EFI_FILE_PROTOCOL *This,
+  IN UINT64 Position
+  )
+;
+
+EFI_STATUS
+EFIAPI
+FfsGetInfo (
+  IN EFI_FILE_PROTOCOL *This,
+  IN EFI_GUID *InformationType,
+  IN OUT UINTN *BufferSize,
+  OUT VOID *Buffer
+  )
+;
+
+EFI_STATUS
+EFIAPI
+FfsSetInfo (
+  IN EFI_FILE_PROTOCOL *This,
+  IN EFI_GUID *InformationType,
+  IN UINTN BufferSize,
+  IN VOID *Buffer
+  )
+;
+
+EFI_STATUS
+EFIAPI
+FfsFlush (IN EFI_FILE_PROTOCOL *This)
+;
+
 #endif  // _FFS_H_

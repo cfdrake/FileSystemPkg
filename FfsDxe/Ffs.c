@@ -32,7 +32,18 @@ either expressed or implied, of Colin Drake.
 #include "Ffs.h"
 
 //
-// Private data structures
+// Private data structure for File
+//
+
+#define FILE_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 'f')
+
+typedef struct {
+  UINT32            Signature;
+  EFI_FILE_PROTOCOL *File;
+} FILE_PRIVATE_DATA;
+
+//
+// Private data structure for File System
 //
 
 #define FILE_SYSTEM_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 't')
@@ -46,6 +57,38 @@ typedef struct {
 #define FILE_SYSTEM_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_SYSTEM_PRIVATE_DATA, SimpleFileSystem, FILE_SYSTEM_PRIVATE_DATA_SIGNATURE)
 
 //
+// Protocol templates and module-scope variables
+//
+
+EFI_EVENT mFfsRegistration;
+
+FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
+  FILE_PRIVATE_DATA_SIGNATURE,
+  {
+    EFI_FILE_PROTOCOL_REVISION,
+    FfsOpen,
+    FfsClose,
+    FfsDelete,
+    FfsRead,
+    FfsWrite,
+    FfsGetPosition,
+    FfsSetPosition,
+    FfsGetInfo,
+    FfsSetInfo,
+    FfsFlush 
+  },
+};
+
+FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
+  FILE_SYSTEM_PRIVATE_DATA_SIGNATURE,
+  {
+    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION,
+    FfsOpenVolume
+  },
+  NULL
+};
+
+//
 // SimpleFileSystem and File protocol functions
 //
 
@@ -56,6 +99,7 @@ FfsOpenVolume (
   OUT EFI_FILE_PROTOCOL               **Root
   )
 {
+  DEBUG ((EFI_D_INFO, "*** FFSOPENVOLUME ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -69,6 +113,7 @@ FfsOpen (
   IN  UINT64            Attributes
   )
 {
+  DEBUG ((EFI_D_INFO, "*** FFSOPEN ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -76,6 +121,7 @@ EFI_STATUS
 EFIAPI
 FfsClose (IN EFI_FILE_PROTOCOL *This)
 {
+  DEBUG ((EFI_D_INFO, "*** FFSCLOSE ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -83,6 +129,7 @@ EFI_STATUS
 EFIAPI
 FfsDelete (IN EFI_FILE_PROTOCOL *This)
 {
+  DEBUG ((EFI_D_INFO, "*** FFSDELETE ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -94,6 +141,7 @@ FfsRead (
   OUT VOID *Buffer
   )
 {
+  DEBUG ((EFI_D_INFO, "*** FFSDELETE ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -105,6 +153,7 @@ FfsWrite (
   IN VOID *Buffer
   )
 {
+  DEBUG ((EFI_D_INFO, "*** FFSDELETE ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -115,6 +164,7 @@ FfsGetPosition (
   OUT UINT64 *Position
   )
 {
+  DEBUG ((EFI_D_INFO, "*** FFSDELETE ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -125,6 +175,7 @@ FfsSetPosition (
   IN UINT64 Position
   )
 {
+  DEBUG ((EFI_D_INFO, "*** FFSSETPOSITION ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -137,6 +188,7 @@ FfsGetInfo (
   OUT VOID *Buffer
   )
 {
+  DEBUG ((EFI_D_INFO, "*** FFSGETINFO ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -149,6 +201,7 @@ FfsSetInfo (
   IN VOID *Buffer
   )
 {
+  DEBUG ((EFI_D_INFO, "*** FFSSETINFO ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -156,23 +209,9 @@ EFI_STATUS
 EFIAPI
 FfsFlush (IN EFI_FILE_PROTOCOL *This)
 {
+  DEBUG ((EFI_D_INFO, "*** FFSFLUSH ***\n"));
   return EFI_UNSUPPORTED;
 }
-
-//
-// Protocol template
-//
-
-EFI_EVENT mFfsRegistration;
-
-FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
-  FILE_SYSTEM_PRIVATE_DATA_SIGNATURE,
-  {
-    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION,
-    FfsOpenVolume
-  },
-  NULL
-};
 
 //
 // Global functions
