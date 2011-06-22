@@ -32,17 +32,6 @@ either expressed or implied, of Colin Drake.
 #include "Ffs.h"
 
 //
-// Private data structure for File
-//
-
-#define FILE_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 'f')
-
-typedef struct {
-  UINT32            Signature;
-  EFI_FILE_PROTOCOL *File;
-} FILE_PRIVATE_DATA;
-
-//
 // Private data structure for File System
 //
 
@@ -57,10 +46,32 @@ typedef struct {
 #define FILE_SYSTEM_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_SYSTEM_PRIVATE_DATA, SimpleFileSystem, FILE_SYSTEM_PRIVATE_DATA_SIGNATURE)
 
 //
+// Private data structure for File
+//
+
+#define FILE_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 'f')
+
+typedef struct {
+  UINT32                   Signature;
+  EFI_FILE_PROTOCOL        *File;
+  FILE_SYSTEM_PRIVATE_DATA *FILE_SYSTEM_PRIVATE_DATA;
+} FILE_PRIVATE_DATA;
+
+//
 // Protocol templates and module-scope variables
 //
 
 EFI_EVENT mFfsRegistration;
+
+FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
+  FILE_SYSTEM_PRIVATE_DATA_SIGNATURE,
+  {
+    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION,
+    FfsOpenVolume
+  },
+  NULL
+};
+
 
 FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
   FILE_PRIVATE_DATA_SIGNATURE,
@@ -76,14 +87,6 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
     FfsGetInfo,
     FfsSetInfo,
     FfsFlush 
-  },
-};
-
-FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
-  FILE_SYSTEM_PRIVATE_DATA_SIGNATURE,
-  {
-    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION,
-    FfsOpenVolume
   },
   NULL
 };
