@@ -53,8 +53,8 @@ typedef struct {
 
 typedef struct {
   UINT32                   Signature;
-  EFI_FILE_PROTOCOL        *File;
-  FILE_SYSTEM_PRIVATE_DATA *FILE_SYSTEM_PRIVATE_DATA;
+  EFI_FILE_PROTOCOL        File;
+  FILE_SYSTEM_PRIVATE_DATA *FileSystem;
 } FILE_PRIVATE_DATA;
 
 //
@@ -102,8 +102,32 @@ FfsOpenVolume (
   OUT EFI_FILE_PROTOCOL               **Root
   )
 {
+  EFI_STATUS               Status;
+  FILE_SYSTEM_PRIVATE_DATA *PrivateFileSystem;
+  FILE_PRIVATE_DATA        *PrivateFile;
+  
+  Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FFSOPENVOLUME ***\n"));
-  return EFI_UNSUPPORTED;
+
+  // Get private structure for This.
+  PrivateFileSystem = FILE_SYSTEM_PRIVATE_DATA_FROM_THIS (This);
+
+  // Allocate a new private FILE_PRIVATE_DATA instance.
+  PrivateFile = AllocateCopyPool (
+                  sizeof (FILE_PRIVATE_DATA),
+                  &mFilePrivateDataTemplate
+                  );
+
+  if (PrivateFile == NULL) {
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  // Fill out the rest of the private file data and assign it's File attribute
+  // to Root.
+  PrivateFile->FileSystem = PrivateFileSystem;
+  Root = &PrivateFile->File;
+
+  return Status;
 }
 
 EFI_STATUS
