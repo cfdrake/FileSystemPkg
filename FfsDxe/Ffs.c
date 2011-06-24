@@ -183,7 +183,7 @@ FfsWrite (
   )
 {
   DEBUG ((EFI_D_INFO, "*** FFSDELETE ***\n"));
-  return EFI_UNSUPPORTED;
+  return EFI_ACCESS_DENIED;
 }
 
 EFI_STATUS
