@@ -113,10 +113,11 @@ FfsOpenVolume (
   PrivateFileSystem = FILE_SYSTEM_PRIVATE_DATA_FROM_THIS (This);
 
   // Allocate a new private FILE_PRIVATE_DATA instance.
-  PrivateFile = AllocateCopyPool (
-                  sizeof (FILE_PRIVATE_DATA),
-                  &mFilePrivateDataTemplate
-                  );
+  gBS->CopyMem (
+        (VOID*) PrivateFile,
+        (VOID*) &mFilePrivateDataTemplate,
+        sizeof (FILE_PRIVATE_DATA)
+        );
 
   if (PrivateFile == NULL) {
     return EFI_OUT_OF_RESOURCES;
@@ -127,6 +128,7 @@ FfsOpenVolume (
   PrivateFile->FileSystem = PrivateFileSystem;
   Root = &PrivateFile->File;
 
+  DEBUG ((EFI_D_INFO, "SUCCESS?\n"));
   return Status;
 }
 
