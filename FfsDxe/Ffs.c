@@ -104,7 +104,7 @@ FfsOpenVolume (
 {
   EFI_STATUS               Status;
   FILE_SYSTEM_PRIVATE_DATA *PrivateFileSystem;
-  FILE_PRIVATE_DATA        PrivateFile;
+  FILE_PRIVATE_DATA        *PrivateFile;
   
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FFSOPENVOLUME ***\n"));
@@ -114,19 +114,20 @@ FfsOpenVolume (
 
   // Allocate a new private FILE_PRIVATE_DATA instance.
   gBS->CopyMem (
-        (VOID*) &PrivateFile,
+        (VOID*) PrivateFile,
         (VOID*) &mFilePrivateDataTemplate,
         sizeof (FILE_PRIVATE_DATA)
         );
 
-  /*if (PrivateFile == NULL) {
+  if (PrivateFile == NULL) {
+    DEBUG ((EFI_D_INFO, "FAILURE\n"));
     return EFI_OUT_OF_RESOURCES;
-  }*/
+  }
 
   // Fill out the rest of the private file data and assign it's File attribute
   // to Root.
-  PrivateFile.FileSystem = PrivateFileSystem;
-  Root = &(PrivateFile.File);
+  PrivateFile->FileSystem = PrivateFileSystem;
+  Root = &PrivateFile->File;
 
   DEBUG ((EFI_D_INFO, "SUCCESS?\n"));
   return Status;
