@@ -239,7 +239,7 @@ EFIAPI
 FfsFlush (IN EFI_FILE_PROTOCOL *This)
 {
   DEBUG ((EFI_D_INFO, "*** FFSFLUSH ***\n"));
-  return EFI_UNSUPPORTED;
+  return EFI_ACCESS_DENIED;
 }
 
 //
