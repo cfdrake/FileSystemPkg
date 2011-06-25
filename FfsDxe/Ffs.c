@@ -107,10 +107,11 @@ FfsOpenVolume (
   FILE_PRIVATE_DATA        *PrivateFile;
   
   Status = EFI_SUCCESS;
-  DEBUG ((EFI_D_INFO, "*** FFSOPENVOLUME ***\n"));
+  DEBUG ((EFI_D_INFO, "FfsOpenVolume: Start\n"));
 
   // Get private structure for This.
   PrivateFileSystem = FILE_SYSTEM_PRIVATE_DATA_FROM_THIS (This);
+  DEBUG ((EFI_D_INFO, "FfsOpenVolume: Grab private filesys struct\n"));
 
   // Allocate a new private FILE_PRIVATE_DATA instance.
   gBS->CopyMem (
@@ -120,16 +121,18 @@ FfsOpenVolume (
         );
 
   if (PrivateFile == NULL) {
-    DEBUG ((EFI_D_INFO, "FAILURE\n"));
+    DEBUG ((EFI_D_ERROR, "FfsOpenVolume: Couldn't allocate private file\n"));
     return EFI_OUT_OF_RESOURCES;
   }
+
+  DEBUG ((EFI_D_INFO, "FfsOpenVolume: Allocate private file struct\n"));
 
   // Fill out the rest of the private file data and assign it's File attribute
   // to Root.
   PrivateFile->FileSystem = PrivateFileSystem;
   Root = &PrivateFile->File;
 
-  DEBUG ((EFI_D_INFO, "SUCCESS?\n"));
+  DEBUG ((EFI_D_INFO, "FfsOpenVolume: End of func\n"));
   return Status;
 }
 
@@ -331,7 +334,7 @@ FfsNotificationEvent (
 
     ASSERT_EFI_ERROR (Status);
 
-    DEBUG ((EFI_D_INFO, "Installed SFS on FV2!\n"));
+    DEBUG ((EFI_D_INFO, "FfsNotificationEvent: Installed SFS on FV2!\n"));
   }
 }
 
