@@ -132,7 +132,7 @@ FfsOpen (
   // it must not be EFI_FILE_MODE_WRITE or EFI_FILE_MODE_CREATE.
   if (OpenMode != EFI_FILE_MODE_READ) {
     DEBUG ((EFI_D_INFO, "FfsOpen: OpenMode must be Read\n"));
-    return EFI_UNSUPPORTED;
+    return EFI_WRITE_PROTECTED;
   }
 
   DEBUG ((EFI_D_INFO, "FfsOpen: End of func\n"));
