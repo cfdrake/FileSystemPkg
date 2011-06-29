@@ -76,6 +76,7 @@ FfsOpenVolume (
   )
 {
   EFI_STATUS               Status;
+  EFI_FILE_PROTOCOL        File;
   FILE_SYSTEM_PRIVATE_DATA *PrivateFileSystem;
   FILE_PRIVATE_DATA        *PrivateFile;
   
@@ -91,7 +92,7 @@ FfsOpenVolume (
 
   PrivateFile = AllocateCopyPool (
               sizeof (FILE_PRIVATE_DATA),
-              &mFilePrivateDataTemplate
+              (VOID *) &mFilePrivateDataTemplate
               );
 
   if (PrivateFile == NULL) {
@@ -104,7 +105,9 @@ FfsOpenVolume (
   // Fill out the rest of the private file data and assign it's File attribute
   // to Root.
   PrivateFile->FileSystem = PrivateFileSystem;
-  **Root = PrivateFile->File;
+
+  File = PrivateFile->File;
+  *Root = AllocateCopyPool (sizeof (EFI_FILE_PROTOCOL), (VOID *) &File);
 
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: End of func\n"));
   return Status;
