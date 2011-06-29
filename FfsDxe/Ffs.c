@@ -46,7 +46,6 @@ FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
   NULL
 };
 
-
 FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
   FILE_PRIVATE_DATA_SIGNATURE,
   {
@@ -90,11 +89,10 @@ FfsOpenVolume (
   // Allocate a new private FILE_PRIVATE_DATA instance.
   PrivateFile = NULL;
 
-  gBS->CopyMem (
-        (VOID*) PrivateFile,
-        (VOID*) &mFilePrivateDataTemplate,
-        sizeof (FILE_PRIVATE_DATA)
-        );
+  PrivateFile = AllocateCopyPool (
+              sizeof (FILE_PRIVATE_DATA),
+              &mFilePrivateDataTemplate
+              );
 
   if (PrivateFile == NULL) {
     DEBUG ((EFI_D_ERROR, "FfsOpenVolume: Couldn't allocate private file\n"));
