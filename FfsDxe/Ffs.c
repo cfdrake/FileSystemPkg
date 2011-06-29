@@ -32,32 +32,6 @@ either expressed or implied, of Colin Drake.
 #include "Ffs.h"
 
 //
-// Private data structure for File System
-//
-
-#define FILE_SYSTEM_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 't')
-
-typedef struct {
-  UINT32                          Signature;
-  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL SimpleFileSystem;
-  EFI_FIRMWARE_VOLUME2_PROTOCOL   *FirmwareVolume2;
-} FILE_SYSTEM_PRIVATE_DATA;
-
-#define FILE_SYSTEM_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_SYSTEM_PRIVATE_DATA, SimpleFileSystem, FILE_SYSTEM_PRIVATE_DATA_SIGNATURE)
-
-//
-// Private data structure for File
-//
-
-#define FILE_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 'f')
-
-typedef struct {
-  UINT32                   Signature;
-  EFI_FILE_PROTOCOL        File;
-  FILE_SYSTEM_PRIVATE_DATA *FileSystem;
-} FILE_PRIVATE_DATA;
-
-//
 // Protocol templates and module-scope variables
 //
 
@@ -114,6 +88,8 @@ FfsOpenVolume (
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: Grab private filesys struct\n"));
 
   // Allocate a new private FILE_PRIVATE_DATA instance.
+  PrivateFile = NULL;
+
   gBS->CopyMem (
         (VOID*) PrivateFile,
         (VOID*) &mFilePrivateDataTemplate,
@@ -130,7 +106,7 @@ FfsOpenVolume (
   // Fill out the rest of the private file data and assign it's File attribute
   // to Root.
   PrivateFile->FileSystem = PrivateFileSystem;
-  Root = &PrivateFile->File;
+  **Root = PrivateFile->File;
 
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: End of func\n"));
   return Status;
