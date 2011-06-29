@@ -123,8 +123,20 @@ FfsOpen (
   IN  UINT64            Attributes
   )
 {
-  DEBUG ((EFI_D_INFO, "*** FFSOPEN ***\n"));
-  return EFI_UNSUPPORTED;
+  EFI_STATUS Status;
+
+  Status = EFI_SUCCESS;
+  DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
+
+  // Check for a valid OpenMode parameter. Since this is a read-only filesystem
+  // it must not be EFI_FILE_MODE_WRITE or EFI_FILE_MODE_CREATE.
+  if (OpenMode != EFI_FILE_MODE_READ) {
+    DEBUG ((EFI_D_INFO, "FfsOpen: OpenMode must be Read\n"));
+    return EFI_UNSUPPORTED;
+  }
+
+  DEBUG ((EFI_D_INFO, "FfsOpen: End of func\n"));
+  return Status;
 }
 
 EFI_STATUS
