@@ -75,10 +75,25 @@ FfsOpenVolume (
   OUT EFI_FILE_PROTOCOL               **Root
   )
 {
-  EFI_STATUS               Status;
-  EFI_FILE_PROTOCOL        File;
-  FILE_SYSTEM_PRIVATE_DATA *PrivateFileSystem;
-  FILE_PRIVATE_DATA        *PrivateFile;
+  EFI_STATUS                    Status;
+  EFI_FILE_PROTOCOL             File;
+  FILE_SYSTEM_PRIVATE_DATA      *PrivateFileSystem;
+  FILE_PRIVATE_DATA             *PrivateFile;
+
+  //
+  // TEST FV2
+  //
+
+  VOID                          *Key;
+  EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
+  EFI_FV_FILETYPE               FileType;
+  EFI_GUID                      NameGuid, OldNameGuid;
+  EFI_FV_FILE_ATTRIBUTES        FvAttributes;
+  UINTN                         Size;
+
+  //
+  // END TEST FV2
+  //
   
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: Start\n"));
@@ -108,6 +123,32 @@ FfsOpenVolume (
 
   File = PrivateFile->File;
   *Root = AllocateCopyPool (sizeof (EFI_FILE_PROTOCOL), (VOID *) &File);
+
+  //
+  // TEST FV2
+  //
+
+  Fv2 = PrivateFileSystem->FirmwareVolume2;
+  Key = AllocateZeroPool (Fv2->KeySize);
+
+  while (TRUE) {
+    Fv2->GetNextFile (Fv2, 
+                      Key,
+                      &FileType,
+                      &NameGuid,
+                      &FvAttributes,
+                      &Size);
+    if (CompareGuid (&NameGuid, &OldNameGuid)) {
+      break;
+    }
+
+    DEBUG ((EFI_D_INFO, "FV2 TEST: GetNextFile: %d\n", Size));
+    CopyGuid (&OldNameGuid, &NameGuid);
+  }
+
+  //
+  // END TEST FV2
+  //
 
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: End of func\n"));
   return Status;

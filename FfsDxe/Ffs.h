@@ -37,6 +37,7 @@ either expressed or implied, of Colin Drake.
 #include <Protocol/FirmwareVolume2.h>
 #include <Library/BaseLib.h>
 #include <Library/DebugLib.h>
+#include <Library/BaseMemoryLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiDriverEntryPoint.h>
 #include <Library/UefiLib.h>
@@ -67,6 +68,8 @@ typedef struct {
   EFI_FILE_PROTOCOL        File;
   FILE_SYSTEM_PRIVATE_DATA *FileSystem;
 } FILE_PRIVATE_DATA;
+
+#define FILE_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_PRIVATE_DATA, File, FILE_PRIVATE_DATA_SIGNATURE)
 
 //
 // SimpleFileSystem and File protocol functions
