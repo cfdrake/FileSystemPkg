@@ -43,6 +43,7 @@ FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION,
     FfsOpenVolume
   },
+  NULL,
   NULL
 };
 
@@ -61,7 +62,11 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
     FfsSetInfo,
     FfsFlush 
   },
-  NULL
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL  
 };
 
 //
@@ -105,6 +110,10 @@ FfsOpenVolume (
   // Fill out the rest of the private file data and assign it's File attribute
   // to Root.
   PrivateFile->FileSystem = PrivateFileSystem;
+  PrivateFile->NextSibling = NULL;
+  PrivateFile->FirstChild = NULL;
+  PrivateFile->Parent = NULL;
+  PrivateFile->FileName = NULL;
 
   File = PrivateFile->File;
   *Root = AllocateCopyPool (sizeof (EFI_FILE_PROTOCOL), (VOID *) &File);
@@ -323,7 +332,7 @@ FfsNotificationEvent (
     ASSERT_EFI_ERROR (Status);
 
     // Fill out the SimpleFileSystem private data structure
-    // TODO: ...nothing?
+    Private->RootFile = NULL;
 
     // Install SimpleFileSystem on the handle
     Status = gBS->InstallMultipleProtocolInterfaces (
