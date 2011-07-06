@@ -36,6 +36,7 @@ either expressed or implied, of Colin Drake.
 #include <Protocol/SimpleFileSystem.h>
 #include <Protocol/FirmwareVolume2.h>
 #include <Library/BaseLib.h>
+#include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiDriverEntryPoint.h>
