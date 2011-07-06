@@ -68,6 +68,8 @@ typedef struct {
   FILE_SYSTEM_PRIVATE_DATA *FileSystem;
 } FILE_PRIVATE_DATA;
 
+#define FILE_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_PRIVATE_DATA, File, FILE_PRIVATE_DATA_SIGNATURE)
+
 //
 // SimpleFileSystem and File protocol functions
 //

@@ -123,7 +123,7 @@ FfsOpen (
   IN  UINT64            Attributes
   )
 {
-  EFI_STATUS Status;
+  EFI_STATUS        Status;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
@@ -133,6 +133,18 @@ FfsOpen (
   if (OpenMode != EFI_FILE_MODE_READ) {
     DEBUG ((EFI_D_INFO, "FfsOpen: OpenMode must be Read\n"));
     return EFI_WRITE_PROTECTED;
+  }
+
+  // Check the filename that was specified to open.
+  if (StrCmp (FileName, (const CHAR16 *) ".\0") == 0) {
+    // Open the current directory.
+    DEBUG ((EFI_D_INFO, "FfsOpen: Open self\n"));
+  } else if (StrCmp (FileName, (const CHAR16 *) "\\\0") == 0) {
+    // Open the root directory.
+    DEBUG ((EFI_D_INFO, "FfsOpen: Open root\n"));
+  } else if (StrCmp (FileName, (const CHAR16 *) "..\0") == 0) {
+    // Open the parent directory.
+    DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
   }
 
   DEBUG ((EFI_D_INFO, "FfsOpen: End of func\n"));
