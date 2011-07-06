@@ -145,13 +145,13 @@ FfsOpen (
   }
 
   // Check the filename that was specified to open.
-  if (StrCmp (FileName, (const CHAR16 *) ".\0") == 0) {
+  if (StrCmp (FileName, (CONST CHAR16 *) ".") == 0) {
     // Open the current directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open self\n"));
-  } else if (StrCmp (FileName, (const CHAR16 *) "\\\0") == 0) {
+  } else if (StrCmp (FileName, (CONST CHAR16 *) "\\") == 0) {
     // Open the root directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open root\n"));
-  } else if (StrCmp (FileName, (const CHAR16 *) "..\0") == 0) {
+  } else if (StrCmp (FileName, (CONST CHAR16 *) "..") == 0) {
     // Open the parent directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
   }
