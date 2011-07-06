@@ -42,17 +42,23 @@ either expressed or implied, of Colin Drake.
 #include <Library/UefiLib.h>
 #include <Library/MemoryAllocationLib.h>
 
+typedef struct _FILE_SYSTEM_PRIVATE_DATA FILE_SYSTEM_PRIVATE_DATA;
+typedef struct _FILE_PRIVATE_DATA FILE_PRIVATE_DATA;
+
 //
 // Private data structure for File System
 //
 
 #define FILE_SYSTEM_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 't')
 
-typedef struct {
+struct _FILE_SYSTEM_PRIVATE_DATA {
   UINT32                          Signature;
+
   EFI_SIMPLE_FILE_SYSTEM_PROTOCOL SimpleFileSystem;
   EFI_FIRMWARE_VOLUME2_PROTOCOL   *FirmwareVolume2;
-} FILE_SYSTEM_PRIVATE_DATA;
+
+  FILE_PRIVATE_DATA               *RootFile;
+};
 
 #define FILE_SYSTEM_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_SYSTEM_PRIVATE_DATA, SimpleFileSystem, FILE_SYSTEM_PRIVATE_DATA_SIGNATURE)
 
@@ -62,11 +68,18 @@ typedef struct {
 
 #define FILE_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 'f')
 
-typedef struct {
+struct _FILE_PRIVATE_DATA {
   UINT32                   Signature;
+
   EFI_FILE_PROTOCOL        File;
+
   FILE_SYSTEM_PRIVATE_DATA *FileSystem;
-} FILE_PRIVATE_DATA;
+  FILE_PRIVATE_DATA        *NextSibling;
+  FILE_PRIVATE_DATA        *FirstChild;
+  FILE_PRIVATE_DATA        *Parent;
+
+  CHAR16                   *FileName;
+};
 
 #define FILE_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_PRIVATE_DATA, File, FILE_PRIVATE_DATA_SIGNATURE)
 
