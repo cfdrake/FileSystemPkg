@@ -57,8 +57,6 @@ struct _FILE_SYSTEM_PRIVATE_DATA {
 
   EFI_SIMPLE_FILE_SYSTEM_PROTOCOL SimpleFileSystem;
   EFI_FIRMWARE_VOLUME2_PROTOCOL   *FirmwareVolume2;
-
-  FILE_PRIVATE_DATA               *RootFile;
 };
 
 #define FILE_SYSTEM_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_SYSTEM_PRIVATE_DATA, SimpleFileSystem, FILE_SYSTEM_PRIVATE_DATA_SIGNATURE)
@@ -75,10 +73,6 @@ struct _FILE_PRIVATE_DATA {
   EFI_FILE_PROTOCOL        File;
 
   FILE_SYSTEM_PRIVATE_DATA *FileSystem;
-  FILE_PRIVATE_DATA        *NextSibling;
-  FILE_PRIVATE_DATA        *FirstChild;
-  FILE_PRIVATE_DATA        *Parent;
-
   CHAR16                   *FileName;
 };
 

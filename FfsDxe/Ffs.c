@@ -43,7 +43,6 @@ FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION,
     FfsOpenVolume
   },
-  NULL,
   NULL
 };
 
@@ -62,10 +61,6 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
     FfsSetInfo,
     FfsFlush 
   },
-  NULL,
-  NULL,
-  NULL,
-  NULL,
   NULL  
 };
 
@@ -84,12 +79,6 @@ FfsOpenVolume (
   EFI_FILE_PROTOCOL             *File;
   FILE_SYSTEM_PRIVATE_DATA      *PrivateFileSystem;
   FILE_PRIVATE_DATA             *PrivateFile;
-  VOID                          *Key;
-  EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
-  EFI_FV_FILETYPE               FileType;
-  EFI_GUID                      NameGuid, OldNameGuid;
-  EFI_FV_FILE_ATTRIBUTES        FvAttributes;
-  UINTN                         Size;
   
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: Start\n"));
@@ -116,61 +105,7 @@ FfsOpenVolume (
   // Fill out the rest of the private file data and assign it's File attribute
   // to Root.
   PrivateFile->FileSystem = PrivateFileSystem;
-  PrivateFile->NextSibling = NULL;
-  PrivateFile->FirstChild = NULL;
-  PrivateFile->Parent = NULL;
   PrivateFile->FileName = L"\\";
-
-  // Generate file instances for all child files to the root.
-  Fv2 = PrivateFileSystem->FirmwareVolume2;
-  Key = AllocateZeroPool (Fv2->KeySize);
-
-  /*
-  while (TRUE) {
-    FILE_PRIVATE_DATA *ChildFile;
-
-    // Get the next file.
-    Fv2->GetNextFile (Fv2, 
-                      Key,
-                      &FileType,
-                      &NameGuid,
-                      &FvAttributes,
-                      &Size);
-
-    // The end of all the files in this list will be indicated when the GUID
-    // does not change between iterations.
-    if (CompareGuid (&NameGuid, &OldNameGuid)) {
-      break;
-    }
-
-    DEBUG ((EFI_D_ERROR, "FfsOpenVolume: Found next FV2 file\n"));
-
-    // TODO: Create a new file instance for this directory.
-    ChildFile = NULL;
-    ChildFile = AllocateCopyPool (
-                  sizeof (FILE_PRIVATE_DATA),
-                  (VOID *) &mFilePrivateDataTemplate
-                  );
-
-    if (ChildFile == NULL) {
-      DEBUG ((EFI_D_ERROR, "FfsOpenVolume: Couldn't allocate child private file\n"));
-      return EFI_OUT_OF_RESOURCES;
-    }
-
-    PrivateFile->FileSystem = PrivateFileSystem;
-    PrivateFile->NextSibling = NULL;
-    PrivateFile->FirstChild = NULL;
-    PrivateFile->Parent = PrivateFile;
-    PrivateFile->FileName = L"\\test";  // TODO: stringify NameGuid
-
-    DEBUG ((EFI_D_INFO, "FfsOpenVolume: Allocated child private file\n"));
-
-    // TODO: Create new file instances for each section of this directory.
-
-    // Copy current Guid to old Guid to continue.
-    CopyGuid (&OldNameGuid, &NameGuid);
-  }  
-  */
 
   // Set outgoing parameters.
   File = &(PrivateFile->File);
@@ -388,9 +323,6 @@ FfsNotificationEvent (
                     );
 
     ASSERT_EFI_ERROR (Status);
-
-    // Fill out the SimpleFileSystem private data structure
-    Private->RootFile = NULL;
 
     // Install SimpleFileSystem on the handle
     Status = gBS->InstallMultipleProtocolInterfaces (
