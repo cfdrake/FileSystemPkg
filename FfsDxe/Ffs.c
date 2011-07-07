@@ -125,6 +125,7 @@ FfsOpenVolume (
   Fv2 = PrivateFileSystem->FirmwareVolume2;
   Key = AllocateZeroPool (Fv2->KeySize);
 
+  /*
   while (TRUE) {
     FILE_PRIVATE_DATA *ChildFile;
 
@@ -169,6 +170,7 @@ FfsOpenVolume (
     // Copy current Guid to old Guid to continue.
     CopyGuid (&OldNameGuid, &NameGuid);
   }  
+  */
 
   // Set outgoing parameters.
   File = &(PrivateFile->File);
