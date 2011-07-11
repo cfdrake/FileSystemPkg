@@ -70,7 +70,7 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
 
 CHAR16 *
 GuidToString (
-  EFI_GUID Guid
+  IN EFI_GUID Guid
   )
 {
   CHAR16 *String;
@@ -85,10 +85,49 @@ GuidToString (
 
 BOOLEAN
 FvHasFile (
-  CHAR16 *FileName
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
+  IN CHAR16                        *FileName
   )
 {
-  return TRUE;
+  VOID                          *Key;
+  EFI_FV_FILETYPE               FileType;
+  EFI_GUID                      NameGuid, OldNameGuid;
+  EFI_FV_FILE_ATTRIBUTES        FvAttributes;
+  UINTN                         Size;
+  BOOLEAN                       HasFile;
+
+  HasFile = FALSE;
+  Key = AllocateZeroPool (Fv2->KeySize);
+
+  // Loop through all FV2 files.
+  while (TRUE) {
+    CHAR16 *GuidAsString;
+
+    Fv2->GetNextFile (Fv2, 
+                      Key,
+                      &FileType,
+                      &NameGuid,
+                      &FvAttributes,
+                      &Size);
+
+    // Check exit condition.
+    if (CompareGuid (&NameGuid, &OldNameGuid)) {
+      break;
+    }
+
+    // Check for the file we're looking for.
+    GuidAsString = GuidToString (NameGuid);
+
+    if (StrCmp (GuidAsString, FileName) == 0) {
+      HasFile = TRUE;
+      break;
+    }
+
+    // Move on to next File.
+    CopyGuid (&OldNameGuid, &NameGuid);
+  }
+
+  return HasFile;
 }
 
 //
