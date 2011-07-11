@@ -69,30 +69,17 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
 //
 
 CHAR16 *
-IntToHex (
-  UINTN N
-  )
-{
-  return NULL;
-}
-
-CHAR16 *
 GuidToString (
   EFI_GUID Guid
   )
 {
   CHAR16 *String;
-  UINTN CharSize, StrSize;
 
-  // Calculate the size of the String to allocate. Composed of 3 sections: the
-  // Data1, Data2/3, and array of Data4 sections. Allocate required space.
-  CharSize = sizeof (CHAR16);
-  StrSize = (CharSize * 8) + ((CharSize * 4) * 2) + ((CharSize * 2) * 8);
+  // Allocate a string to hold a 36-character GUID and NULL byte.
+  String = AllocatePool (37);
 
-  String = AllocatePool (StrSize);
-
-  // ...
-
+  // Print the GUID into the string with the %g formatter.
+  UnicodeSPrint (String, Size, L"%g", Guid);
   return String;
 }
 
