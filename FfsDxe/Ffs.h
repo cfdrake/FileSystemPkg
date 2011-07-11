@@ -43,7 +43,6 @@ either expressed or implied, of Colin Drake.
 #include <Library/UefiDriverEntryPoint.h>
 #include <Library/UefiLib.h>
 #include <Library/MemoryAllocationLib.h>
-#include <Uefi/UefiBaseType.h>
 
 typedef struct _FILE_SYSTEM_PRIVATE_DATA FILE_SYSTEM_PRIVATE_DATA;
 typedef struct _FILE_PRIVATE_DATA FILE_PRIVATE_DATA;

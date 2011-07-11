@@ -79,7 +79,7 @@ GuidToString (
   String = AllocatePool (37);
 
   // Print the GUID into the string with the %g formatter.
-  UnicodeSPrint (String, Size, L"%g", Guid);
+  UnicodeSPrint (String, 37, L"%g", Guid);
   return String;
 }
 
