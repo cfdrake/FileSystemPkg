@@ -65,6 +65,46 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
 };
 
 //
+// Misc. helper methods
+//
+
+CHAR16 *
+IntToHex (
+  UINTN N
+  )
+{
+  return NULL;
+}
+
+CHAR16 *
+GuidToString (
+  EFI_GUID Guid
+  )
+{
+  CHAR16 *String;
+  UINTN CharSize, StrSize;
+
+  // Calculate the size of the String to allocate. Composed of 3 sections: the
+  // Data1, Data2/3, and array of Data4 sections. Allocate required space.
+  CharSize = sizeof (CHAR16);
+  StrSize = (CharSize * 8) + ((CharSize * 4) * 2) + ((CharSize * 2) * 8);
+
+  String = AllocatePool (StrSize);
+
+  // ...
+
+  return String;
+}
+
+BOOLEAN
+FvHasFile (
+  CHAR16 *FileName
+  )
+{
+  return TRUE;
+}
+
+//
 // SimpleFileSystem and File protocol functions
 //
 
