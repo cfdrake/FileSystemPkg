@@ -44,8 +44,14 @@ either expressed or implied, of Colin Drake.
 #include <Library/UefiLib.h>
 #include <Library/MemoryAllocationLib.h>
 
+//
+// Typedefs
+//
+
 typedef struct _FILE_SYSTEM_PRIVATE_DATA FILE_SYSTEM_PRIVATE_DATA;
 typedef struct _FILE_PRIVATE_DATA FILE_PRIVATE_DATA;
+typedef struct _DIR_INFO DIR_INFO;
+typedef struct _FILE_INFO FILE_INFO;
 
 //
 // Private data structure for File System
@@ -72,9 +78,21 @@ struct _FILE_PRIVATE_DATA {
   UINT32                   Signature;
 
   EFI_FILE_PROTOCOL        File;
-
   FILE_SYSTEM_PRIVATE_DATA *FileSystem;
+
   CHAR16                   *FileName;
+
+  BOOLEAN                  IsDirectory;
+  DIR_INFO                 *DirInfo;
+  FILE_INFO                *FileInfo;
+};
+
+struct _DIR_INFO {
+  LIST_ENTRY *Children;
+};
+
+struct _FILE_INFO {
+  BOOLEAN IsExecutable;
 };
 
 #define FILE_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_PRIVATE_DATA, File, FILE_PRIVATE_DATA_SIGNATURE)

@@ -61,7 +61,11 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
     FfsSetInfo,
     FfsFlush 
   },
-  NULL  
+  NULL,
+  NULL,
+  FALSE,
+  NULL,
+  NULL
 };
 
 //
@@ -170,8 +174,11 @@ FfsOpenVolume (
 
   // Fill out the rest of the private file data and assign it's File attribute
   // to Root.
-  PrivateFile->FileSystem = PrivateFileSystem;
-  PrivateFile->FileName = L"\\";
+  PrivateFile->FileSystem  = PrivateFileSystem;
+  PrivateFile->FileName    = L"\\";
+  PrivateFile->IsDirectory = TRUE;
+  PrivateFile->DirInfo     = NULL;
+  PrivateFile->FileInfo    = NULL;
 
   // Set outgoing parameters.
   File = &(PrivateFile->File);
@@ -192,6 +199,7 @@ FfsOpen (
   )
 {
   EFI_STATUS        Status;
+  FILE_PRIVATE_DATA *PrivateFile;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
@@ -203,6 +211,8 @@ FfsOpen (
     return EFI_WRITE_PROTECTED;
   }
 
+  PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
+
   // Check the filename that was specified to open.
   if (StrCmp (FileName, L".") == 0) {
     // Open the current directory.
@@ -213,6 +223,16 @@ FfsOpen (
   } else if (StrCmp (FileName, L"..") == 0) {
     // Open the parent directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
+  } else {
+    // Check for the filename on the FV2 volume.
+    if (FvHasFile (PrivateFile->FileSystem->FirmwareVolume2, FileName)) {
+      // Found file.
+      DEBUG ((EFI_D_INFO, "FfsOpen: File found\n"));
+    } else {
+      // File not found.
+      DEBUG ((EFI_D_INFO, "FfsOpen: File not found\n"));
+      Status = EFI_NOT_FOUND;
+    }
   }
 
   DEBUG ((EFI_D_INFO, "FfsOpen: End of func\n"));
