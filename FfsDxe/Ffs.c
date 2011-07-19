@@ -316,8 +316,27 @@ FfsGetInfo (
   OUT VOID *Buffer
   )
 {
-  DEBUG ((EFI_D_INFO, "*** FFSGETINFO ***\n"));
-  return EFI_UNSUPPORTED;
+  EFI_STATUS Status;
+
+  Status = EFI_SUCCESS;
+  DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Start of func ***\n"));
+
+  // Check InformationType.
+  if (CompareGuid (InformationType, &gEfiFileInfoGuid)) {
+    // Requesting EFI_FILE_INFO.
+    DEBUG ((EFI_D_INFO, "*** FfsGetInfo: EFI_FILE_INFO request ***\n"));
+  } else if (CompareGuid (InformationType, &gEfiFileSystemInfoGuid)) {
+    // Requesting EFI_FILE_SYSTEM_INFO.
+    DEBUG ((EFI_D_INFO, "*** FfsGetInfo: EFI_FILE_SYSTEM_INFO request ***\n"));
+  } else if (CompareGuid (InformationType, &gEfiFileSystemVolumeLabelInfoIdGuid)) {
+    // Requesting EFI_FILE_SYSTEM_VOLUME_LABEL.
+    DEBUG ((EFI_D_INFO, "*** FfsGetInfo: EFI_VOLUME_NAME request ***\n"));
+  } else {
+    // Invalid value.
+    DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Invalid request ***\n"));
+  }
+
+  return Status;
 }
 
 EFI_STATUS

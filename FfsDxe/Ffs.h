@@ -33,6 +33,9 @@ either expressed or implied, of Colin Drake.
 #define _FFS_H_
 
 #include <PiDxe.h>
+#include <Guid/FileInfo.h>
+#include <Guid/FileSystemInfo.h>
+#include <Guid/FileSystemVolumeLabelInfo.h>
 #include <Protocol/SimpleFileSystem.h>
 #include <Protocol/FirmwareVolume2.h>
 #include <Library/BaseLib.h>
