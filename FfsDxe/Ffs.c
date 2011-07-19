@@ -149,6 +149,7 @@ FfsOpenVolume (
   EFI_FILE_PROTOCOL             *File;
   FILE_SYSTEM_PRIVATE_DATA      *PrivateFileSystem;
   FILE_PRIVATE_DATA             *PrivateFile;
+  DIR_INFO                      *RootInfo;
   
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: Start\n"));
@@ -177,8 +178,11 @@ FfsOpenVolume (
   PrivateFile->FileSystem  = PrivateFileSystem;
   PrivateFile->FileName    = L"\\";
   PrivateFile->IsDirectory = TRUE;
-  PrivateFile->DirInfo     = NULL;
   PrivateFile->FileInfo    = NULL;
+
+  RootInfo = AllocateZeroPool (sizeof (DIR_INFO));
+  InitializeListHead (&(RootInfo->Children));
+  PrivateFile->DirInfo     = RootInfo;
 
   // Set outgoing parameters.
   File = &(PrivateFile->File);
@@ -210,6 +214,8 @@ FfsOpen (
     DEBUG ((EFI_D_INFO, "FfsOpen: OpenMode must be Read\n"));
     return EFI_WRITE_PROTECTED;
   }
+
+  DEBUG ((EFI_D_INFO, "OPENING : %s\n", FileName));
 
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
 

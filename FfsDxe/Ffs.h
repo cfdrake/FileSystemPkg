@@ -88,7 +88,7 @@ struct _FILE_PRIVATE_DATA {
 };
 
 struct _DIR_INFO {
-  LIST_ENTRY *Children;
+  LIST_ENTRY Children;
 };
 
 struct _FILE_INFO {
