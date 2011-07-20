@@ -381,7 +381,7 @@ FfsSetInfo (
   )
 {
   DEBUG ((EFI_D_INFO, "*** FfsSetInfo: Unsupported ***\n"));
-  return EFI_UNSUPPORTED;
+  return EFI_WRITE_PROTECTED;
 }
 
 EFI_STATUS
