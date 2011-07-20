@@ -251,10 +251,18 @@ FfsClose (IN EFI_FILE_PROTOCOL *This)
 {
   FILE_PRIVATE_DATA *PrivateFile;
 
-  // Grab the associated private data and free it.
+  // Grab the associated private data.
   DEBUG ((EFI_D_INFO, "*** FfsClose: Start of func ***\n"));
 
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
+
+  if (PrivateFile->IsDirectory) {
+    FreePool (PrivateFile->DirInfo);
+  } else {
+    FreePool (PrivateFile->FileInfo);
+  }  
+
+  // Free up all of the private data.
   FreePool (PrivateFile);
 
   DEBUG ((EFI_D_INFO, "*** FfsClose: End of func ***\n"));
