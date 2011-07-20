@@ -47,6 +47,8 @@ either expressed or implied, of Colin Drake.
 #include <Library/UefiLib.h>
 #include <Library/MemoryAllocationLib.h>
 
+#define END_OF_FILE_POSITION 0xFFFFFFFFFFFFFFFF
+
 //
 // Typedefs
 //

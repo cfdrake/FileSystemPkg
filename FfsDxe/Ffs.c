@@ -335,8 +335,32 @@ FfsSetPosition (
   IN UINT64 Position
   )
 {
-  DEBUG ((EFI_D_INFO, "*** FFSSETPOSITION ***\n"));
-  return EFI_UNSUPPORTED;
+  EFI_STATUS        Status;
+  FILE_PRIVATE_DATA *PrivateFile;
+
+  DEBUG ((EFI_D_INFO, "*** FfsSetPosition: Start of func ***\n"));
+
+  // Grab private data associated with This.
+  PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
+
+  // Check for the invalid condition that This is a directory and the position
+  // is non-zero. This has the effect of only allowing directory reads to be 
+  // restarted.
+  if (PrivateFile->IsDirectory && Position != 0) {
+    return EFI_UNSUPPORTED;
+  }
+
+  // Set the position in the private data structures.
+  if (Position == END_OF_FILE_POSITION) {
+    // Set to the end-of-file.
+    // TODO: fixme
+  } else {
+    // Set position.
+    PrivateFile->Position = Position;
+  }
+
+  DEBUG ((EFI_D_INFO, "*** FfsSetPosition: End of func ***\n"));
+  return Status;
 }
 
 EFI_STATUS
