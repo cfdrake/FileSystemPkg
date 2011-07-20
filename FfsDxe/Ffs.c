@@ -265,7 +265,7 @@ EFI_STATUS
 EFIAPI
 FfsDelete (IN EFI_FILE_PROTOCOL *This)
 {
-  DEBUG ((EFI_D_INFO, "*** FFSDELETE ***\n"));
+  DEBUG ((EFI_D_INFO, "*** FfsDelete: Unsupported ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -277,7 +277,7 @@ FfsRead (
   OUT VOID *Buffer
   )
 {
-  DEBUG ((EFI_D_INFO, "*** FFSDELETE ***\n"));
+  DEBUG ((EFI_D_INFO, "*** FfsRead: Not implemented ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -289,7 +289,7 @@ FfsWrite (
   IN VOID *Buffer
   )
 {
-  DEBUG ((EFI_D_INFO, "*** FFSDELETE ***\n"));
+  DEBUG ((EFI_D_INFO, "*** FfsWrite: Unsupported ***\n"));
   return EFI_ACCESS_DENIED;
 }
 
@@ -356,7 +356,7 @@ FfsSetInfo (
   IN VOID *Buffer
   )
 {
-  DEBUG ((EFI_D_INFO, "*** FFSSETINFO ***\n"));
+  DEBUG ((EFI_D_INFO, "*** FfsSetInfo: Unsupported ***\n"));
   return EFI_UNSUPPORTED;
 }
 
@@ -364,7 +364,7 @@ EFI_STATUS
 EFIAPI
 FfsFlush (IN EFI_FILE_PROTOCOL *This)
 {
-  DEBUG ((EFI_D_INFO, "*** FFSFLUSH ***\n"));
+  DEBUG ((EFI_D_INFO, "*** FfsFlush: Unsupported ***\n"));
   return EFI_ACCESS_DENIED;
 }
 
