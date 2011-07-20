@@ -322,7 +322,7 @@ FfsGetPosition (
   }
 
   // Grab the current file position.
-  Position = PrivateFile->Position;
+  *Position = PrivateFile->Position;
 
   DEBUG ((EFI_D_INFO, "*** FfsGetPosition: End of func ***\n"));
   return EFI_SUCCESS;
