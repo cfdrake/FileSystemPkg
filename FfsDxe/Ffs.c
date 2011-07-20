@@ -65,7 +65,8 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
   NULL,
   FALSE,
   NULL,
-  NULL
+  NULL,
+  0
 };
 
 //

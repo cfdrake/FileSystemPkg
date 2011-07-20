@@ -88,6 +88,8 @@ struct _FILE_PRIVATE_DATA {
   BOOLEAN                  IsDirectory;
   DIR_INFO                 *DirInfo;
   FILE_INFO                *FileInfo;
+
+  UINT64                   Position;
 };
 
 struct _DIR_INFO {
