@@ -309,8 +309,23 @@ FfsGetPosition (
   OUT UINT64 *Position
   )
 {
-  DEBUG ((EFI_D_INFO, "*** FFSDELETE ***\n"));
-  return EFI_UNSUPPORTED;
+  FILE_PRIVATE_DATA *PrivateFile;
+
+  DEBUG ((EFI_D_INFO, "*** FfsGetPosition: Start of func ***\n"));
+
+  // Grab the private data associated with This.
+  PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
+
+  // Ensure that this function is not called on a directory.
+  if (PrivateFile->IsDirectory) {
+    return EFI_UNSUPPORTED;
+  }
+
+  // Grab the current file position.
+  Position = PrivateFile->Position;
+
+  DEBUG ((EFI_D_INFO, "*** FfsGetPosition: End of func ***\n"));
+  return EFI_SUCCESS;
 }
 
 EFI_STATUS
