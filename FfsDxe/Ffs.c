@@ -147,7 +147,6 @@ FfsOpenVolume (
   )
 {
   EFI_STATUS                    Status;
-  EFI_FILE_PROTOCOL             *File;
   FILE_SYSTEM_PRIVATE_DATA      *PrivateFileSystem;
   FILE_PRIVATE_DATA             *PrivateFile;
   DIR_INFO                      *RootInfo;
@@ -186,8 +185,7 @@ FfsOpenVolume (
   PrivateFile->DirInfo     = RootInfo;
 
   // Set outgoing parameters.
-  File = &(PrivateFile->File);
-  *Root = AllocateCopyPool (sizeof (EFI_FILE_PROTOCOL), (VOID *) File);
+  *Root = &(PrivateFile->File);
 
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: End of func\n"));
   return Status;

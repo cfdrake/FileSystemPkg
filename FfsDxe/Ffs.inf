@@ -70,7 +70,6 @@
   gEfiFileSystemVolumeLabelInfoIdGuid
   gEfiFileInfoGuid
   gEfiFileSystemInfoGuid
-  gEfiFfsGuid
 
 
 [Protocols]
