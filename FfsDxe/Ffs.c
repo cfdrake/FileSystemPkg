@@ -249,8 +249,16 @@ EFI_STATUS
 EFIAPI
 FfsClose (IN EFI_FILE_PROTOCOL *This)
 {
-  DEBUG ((EFI_D_INFO, "*** FFSCLOSE ***\n"));
-  return EFI_UNSUPPORTED;
+  FILE_PRIVATE_DATA *PrivateFile;
+
+  // Grab the associated private data and free it.
+  DEBUG ((EFI_D_INFO, "*** FfsClose: Start of func ***\n"));
+
+  PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
+  FreePool (PrivateFile);
+
+  DEBUG ((EFI_D_INFO, "*** FfsClose: End of func ***\n"));
+  return EFI_SUCCESS;
 }
 
 EFI_STATUS
