@@ -78,18 +78,18 @@ GuidToString (
   IN EFI_GUID Guid
   )
 {
-  CHAR16 *String;
+  CHAR16 **String;
 
   // Allocate a string to hold a 36-character GUID and NULL byte.
-  String = AllocatePool (37);
+  ZeroMem (*String, 37 * sizeof (CHAR16));
 
   // Print the GUID into the string with the %g formatter.
-  UnicodeSPrint (String, 37, L"%g", Guid);
-  return String;
+  UnicodeSPrint (*String, sizeof (*String), L"%g", Guid);
+  return *String;
 }
 
-BOOLEAN
-FvHasFile (
+EFI_GUID *
+FvGetFile (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
   IN CHAR16                        *FileName
   )
@@ -99,10 +99,10 @@ FvHasFile (
   EFI_GUID                      NameGuid, OldNameGuid;
   EFI_FV_FILE_ATTRIBUTES        FvAttributes;
   UINTN                         Size;
-  BOOLEAN                       HasFile;
+  EFI_GUID                      *Guid;
 
-  HasFile = FALSE;
-  Key = AllocateZeroPool (Fv2->KeySize);
+  Guid    = NULL;
+  Key     = AllocateZeroPool (Fv2->KeySize);
 
   // Loop through all FV2 files.
   while (TRUE) {
@@ -124,7 +124,7 @@ FvHasFile (
     GuidAsString = GuidToString (NameGuid);
 
     if (StrCmp (GuidAsString, FileName) == 0) {
-      HasFile = TRUE;
+      Guid = &NameGuid;
       break;
     }
 
@@ -132,7 +132,7 @@ FvHasFile (
     CopyGuid (&OldNameGuid, &NameGuid);
   }
 
-  return HasFile;
+  return Guid;
 }
 
 //
@@ -203,6 +203,7 @@ FfsOpen (
 {
   EFI_STATUS        Status;
   FILE_PRIVATE_DATA *PrivateFile;
+  EFI_GUID          *Guid;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
@@ -230,7 +231,9 @@ FfsOpen (
     DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
   } else {
     // Check for the filename on the FV2 volume.
-    if (FvHasFile (PrivateFile->FileSystem->FirmwareVolume2, FileName)) {
+    Guid = FvGetFile (PrivateFile->FileSystem->FirmwareVolume2, FileName);
+
+    if (Guid != NULL) {
       // Found file.
       DEBUG ((EFI_D_INFO, "FfsOpen: File found\n"));
     } else {
