@@ -79,6 +79,7 @@ FvGetFile (
   IN CHAR16                        *FileName
   )
 {
+  BOOLEAN                       Found;
   VOID                          *Key;
   EFI_FV_FILETYPE               FileType;
   EFI_GUID                      *NameGuid, *OldNameGuid;
@@ -87,11 +88,11 @@ FvGetFile (
   CHAR16                        *GuidAsString;
 
   // Loop through all FV2 files.
+  Found        = FALSE;
   GuidAsString = AllocateZeroPool (SIZE_OF_GUID);
-
-  OldNameGuid = AllocateZeroPool (sizeof (EFI_GUID));
-  NameGuid    = AllocateZeroPool (sizeof (EFI_GUID));
-  Key         = AllocateZeroPool (Fv2->KeySize);
+  OldNameGuid  = AllocateZeroPool (sizeof (EFI_GUID));
+  NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
+  Key          = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
     // Grab next file.
@@ -112,6 +113,7 @@ FvGetFile (
     DEBUG ((EFI_D_INFO, "FvGetFile: Checking GUID: %s...\n", GuidAsString));
 
     if (StrCmp (GuidAsString, FileName) == 0) {
+      Found = TRUE;
       break;
     }
 
@@ -119,7 +121,7 @@ FvGetFile (
     CopyGuid (OldNameGuid, NameGuid);
   }
 
-  return NameGuid;
+  return (Found ? NameGuid : NULL);
 }
 
 //
@@ -203,7 +205,6 @@ FfsOpen (
   }
 
   DEBUG ((EFI_D_INFO, "OPENING : %s\n", FileName));
-
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
 
   // Check the filename that was specified to open.
