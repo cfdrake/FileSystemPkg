@@ -73,21 +73,6 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
 // Misc. helper methods
 //
 
-CHAR16 *
-GuidToString (
-  IN EFI_GUID Guid
-  )
-{
-  CHAR16 **String;
-
-  // Allocate a string to hold a 36-character GUID and NULL byte.
-  ZeroMem (*String, 37 * sizeof (CHAR16));
-
-  // Print the GUID into the string with the %g formatter.
-  UnicodeSPrint (*String, sizeof (*String), L"%g", Guid);
-  return *String;
-}
-
 EFI_GUID *
 FvGetFile (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
@@ -96,43 +81,45 @@ FvGetFile (
 {
   VOID                          *Key;
   EFI_FV_FILETYPE               FileType;
-  EFI_GUID                      NameGuid, OldNameGuid;
+  EFI_GUID                      *NameGuid, *OldNameGuid;
   EFI_FV_FILE_ATTRIBUTES        FvAttributes;
   UINTN                         Size;
-  EFI_GUID                      *Guid;
-
-  Guid    = NULL;
-  Key     = AllocateZeroPool (Fv2->KeySize);
+  CHAR16                        *GuidAsString;
 
   // Loop through all FV2 files.
-  while (TRUE) {
-    CHAR16 *GuidAsString;
+  GuidAsString = AllocateZeroPool (SIZE_OF_GUID);
 
+  OldNameGuid = AllocateZeroPool (sizeof (EFI_GUID));
+  NameGuid    = AllocateZeroPool (sizeof (EFI_GUID));
+  Key         = AllocateZeroPool (Fv2->KeySize);
+
+  while (TRUE) {
+    // Grab next file.
     Fv2->GetNextFile (Fv2, 
                       Key,
                       &FileType,
-                      &NameGuid,
+                      NameGuid,
                       &FvAttributes,
                       &Size);
 
     // Check exit condition.
-    if (CompareGuid (&NameGuid, &OldNameGuid)) {
+    if (CompareGuid (NameGuid, OldNameGuid)) {
       break;
     }
 
     // Check for the file we're looking for.
-    GuidAsString = GuidToString (NameGuid);
+    UnicodeSPrint (GuidAsString, SIZE_OF_GUID, L"%g", &NameGuid);
+    DEBUG ((EFI_D_INFO, "FvGetFile: Checking GUID: %s...\n", GuidAsString));
 
     if (StrCmp (GuidAsString, FileName) == 0) {
-      Guid = &NameGuid;
       break;
     }
 
     // Move on to next File.
-    CopyGuid (&OldNameGuid, &NameGuid);
+    CopyGuid (OldNameGuid, NameGuid);
   }
 
-  return Guid;
+  return NameGuid;
 }
 
 //

@@ -48,6 +48,7 @@ either expressed or implied, of Colin Drake.
 #include <Library/MemoryAllocationLib.h>
 
 #define END_OF_FILE_POSITION 0xFFFFFFFFFFFFFFFF
+#define SIZE_OF_GUID         sizeof (CHAR16) * 37
 
 //
 // Typedefs
