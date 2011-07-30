@@ -379,6 +379,7 @@ FfsGetInfo (
   } else {
     // Invalid value.
     DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Invalid request ***\n"));
+    return EFI_UNSUPPORTED;
   }
 
   return Status;
