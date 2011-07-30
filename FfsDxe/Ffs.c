@@ -275,8 +275,26 @@ FfsRead (
   OUT VOID *Buffer
   )
 {
-  DEBUG ((EFI_D_INFO, "*** FfsRead: Not implemented ***\n"));
-  return EFI_UNSUPPORTED;
+  EFI_STATUS        Status;
+  FILE_PRIVATE_DATA *PrivateFile;
+
+  Status = EFI_SUCCESS;
+  DEBUG ((EFI_D_INFO, "*** FfsRead: Start of func ***\n"));
+
+  // Grab private data.
+  PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
+
+  // Check filetype.
+  if (PrivateFile->IsDirectory) {
+    // Called on a Directory.
+    DEBUG ((EFI_D_INFO, "*** FfsRead: Called on directory ***\n"));
+  } else {
+    // Called on a File.
+    DEBUG ((EFI_D_INFO, "*** FfsRead: Called on file ***\n"));
+  }
+
+  DEBUG ((EFI_D_INFO, "*** FfsRead: End of func ***\n"));
+  return Status;
 }
 
 EFI_STATUS
