@@ -191,9 +191,11 @@ FfsOpen (
   IN  UINT64            Attributes
   )
 {
-  EFI_STATUS        Status;
-  FILE_PRIVATE_DATA *PrivateFile;
-  EFI_GUID          *Guid;
+  EFI_STATUS                      Status;
+  FILE_PRIVATE_DATA               *PrivateFile;
+  EFI_GUID                        *Guid;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *FileSystem;
+  EFI_FILE_PROTOCOL               *File;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
@@ -215,6 +217,12 @@ FfsOpen (
   } else if (StrCmp (FileName, L"\\") == 0) {
     // Open the root directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open root\n"));
+
+    FileSystem = &(PrivateFile->FileSystem->SimpleFileSystem);
+    Status = FfsOpenVolume (FileSystem, &File);
+    NewHandle = &File;
+
+    return Status;
   } else if (StrCmp (FileName, L"..") == 0) {
     // Open the parent directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
