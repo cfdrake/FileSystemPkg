@@ -539,6 +539,6 @@ InitializeFfsFileSystem (
     &mFfsRegistration
     );
 
-  //gBS->GetTime (&mModuleLoadTime, NULL);
+  gRT->GetTime (&mModuleLoadTime, NULL);
   return EFI_SUCCESS;
 }

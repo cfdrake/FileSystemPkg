@@ -45,6 +45,7 @@ either expressed or implied, of Colin Drake.
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiDriverEntryPoint.h>
 #include <Library/UefiLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/MemoryAllocationLib.h>
 
 #define END_OF_FILE_POSITION 0xFFFFFFFFFFFFFFFF

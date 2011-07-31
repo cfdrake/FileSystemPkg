@@ -62,6 +62,7 @@
   BaseMemoryLib
   UefiLib
   UefiDriverEntryPoint
+  UefiRuntimeServicesTableLib
   BaseLib
   DebugLib
 
