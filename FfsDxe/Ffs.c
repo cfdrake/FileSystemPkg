@@ -214,6 +214,9 @@ FfsOpen (
   if (StrCmp (FileName, L".") == 0) {
     // Open the current directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open self\n"));
+
+    NewHandle = &This;
+    return Status;
   } else if (StrCmp (FileName, L"\\") == 0) {
     // Open the root directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open root\n"));
