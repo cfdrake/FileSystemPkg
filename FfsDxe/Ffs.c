@@ -211,13 +211,8 @@ FfsOpen (
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
 
   // Check the filename that was specified to open.
-  if (StrCmp (FileName, L".") == 0) {
-    // Open the current directory.
-    DEBUG ((EFI_D_INFO, "FfsOpen: Open self\n"));
-
-    NewHandle = &This;
-    return Status;
-  } else if (StrCmp (FileName, L"\\") == 0) {
+  if (StrCmp (FileName, L"\\") == 0 ||
+             (StrCmp (FileName, L".") == 0 && PrivateFile->IsDirectory)) {
     // Open the root directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open root\n"));
 
@@ -226,7 +221,13 @@ FfsOpen (
     NewHandle = &File;
 
     return Status;
-  } else if (StrCmp (FileName, L"..") == 0) {
+  } else if (StrCmp (FileName, L".") == 0) {
+    // Open the current directory.
+    DEBUG ((EFI_D_INFO, "FfsOpen: Open self\n"));
+
+    NewHandle = &This;
+    return Status;
+    } else if (StrCmp (FileName, L"..") == 0) {
     // Open the parent directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
   } else {
