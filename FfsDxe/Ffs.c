@@ -35,6 +35,7 @@ either expressed or implied, of Colin Drake.
 // Protocol templates and module-scope variables
 //
 
+EFI_TIME mModuleLoadTime;
 EFI_EVENT mFfsRegistration;
 
 FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
@@ -538,5 +539,6 @@ InitializeFfsFileSystem (
     &mFfsRegistration
     );
 
+  //gBS->GetTime (&mModuleLoadTime, NULL);
   return EFI_SUCCESS;
 }
