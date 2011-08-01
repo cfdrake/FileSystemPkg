@@ -44,6 +44,7 @@ FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION,
     FfsOpenVolume
   },
+  NULL,
   NULL
 };
 
@@ -174,6 +175,9 @@ FfsOpenVolume (
   InitializeListHead (&(RootInfo->Children));
   PrivateFile->DirInfo     = RootInfo;
 
+  // Set the root folder of the file system.
+  PrivateFileSystem->Root = PrivateFile;
+
   // Set outgoing parameters.
   *Root = &(PrivateFile->File);
 
@@ -194,15 +198,14 @@ FfsOpen (
   EFI_STATUS                      Status;
   FILE_PRIVATE_DATA               *PrivateFile;
   EFI_GUID                        *Guid;
-  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *FileSystem;
-  EFI_FILE_PROTOCOL               *File;
+  FILE_SYSTEM_PRIVATE_DATA        *FileSystem;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
 
   // Check for a valid OpenMode parameter. Since this is a read-only filesystem
   // it must not be EFI_FILE_MODE_WRITE or EFI_FILE_MODE_CREATE.
-  if (OpenMode != EFI_FILE_MODE_READ) {
+  if (!(OpenMode & EFI_FILE_MODE_READ)) {
     DEBUG ((EFI_D_INFO, "FfsOpen: OpenMode must be Read\n"));
     return EFI_WRITE_PROTECTED;
   }
@@ -216,9 +219,8 @@ FfsOpen (
     // Open the root directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open root\n"));
 
-    FileSystem = &(PrivateFile->FileSystem->SimpleFileSystem);
-    Status = FfsOpenVolume (FileSystem, &File);
-    NewHandle = &File;
+    FileSystem = PrivateFile->FileSystem;
+    *NewHandle = &(FileSystem->Root->File);
 
     return Status;
   } else if (StrCmp (FileName, L"..") == 0) {
