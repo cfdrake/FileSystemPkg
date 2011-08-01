@@ -226,6 +226,8 @@ FfsOpen (
   } else if (StrCmp (FileName, L"..") == 0) {
     // Open the parent directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
+
+    return EFI_NOT_FOUND;
   } else {
     // Check for the filename on the FV2 volume.
     Guid = FvGetFile (PrivateFile->FileSystem->FirmwareVolume2, FileName);
