@@ -81,10 +81,11 @@ FvGetFile (
   IN CHAR16                        *FileName
   )
 {
+  EFI_STATUS                    Status;
   BOOLEAN                       Found;
   VOID                          *Key;
   EFI_FV_FILETYPE               FileType;
-  EFI_GUID                      *NameGuid, *OldNameGuid;
+  EFI_GUID                      *NameGuid;
   EFI_FV_FILE_ATTRIBUTES        FvAttributes;
   UINTN                         Size;
   CHAR16                        *GuidAsString;
@@ -92,25 +93,21 @@ FvGetFile (
   // Loop through all FV2 files.
   Found        = FALSE;
   GuidAsString = AllocateZeroPool (SIZE_OF_GUID);
-  OldNameGuid  = AllocateZeroPool (sizeof (EFI_GUID));
   NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
   Key          = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
-    // Grab next file.
-    Fv2->GetNextFile (Fv2, 
-                      Key,
-                      &FileType,
-                      NameGuid,
-                      &FvAttributes,
-                      &Size);
+    // Grab the next file in the Fv2 volume.
+    Status = Fv2->GetNextFile (Fv2, 
+                               Key,
+                               &FileType,
+                               NameGuid,
+                               &FvAttributes,
+                               &Size);
 
-    // Check exit condition.
-    if (CompareGuid (NameGuid, OldNameGuid)) {
-      break;
-    }
-
-    // Check for the file we're looking for.
+    // Check for the file we're looking for by converting the found GUID to a
+    // string and testing with StrCmp(). If the GUID and FileName input string
+    // are equal, then the requested file was found.
     UnicodeSPrint (GuidAsString, SIZE_OF_GUID, L"%g", &NameGuid);
     DEBUG ((EFI_D_INFO, "FvGetFile: Checking GUID: %s...\n", GuidAsString));
 
@@ -119,10 +116,21 @@ FvGetFile (
       break;
     }
 
-    // Move on to next File.
-    CopyGuid (OldNameGuid, NameGuid);
+    // Check exit condition. If Status is an error status, then the list of
+    // files tried has been exhausted. Break from the loop and return NULL.
+    if (EFI_ERROR (Status)) {
+      DEBUG ((EFI_D_INFO, "FvGetFile: At last file or ERROR found...\n"));
+      break;
+    }
   }
 
+  // Free all allocated memory.
+  FreePool (GuidAsString);
+  FreePool (NameGuid);
+  FreePool (Key);
+
+  // Return either the GUID of a matching file or a pointer to NULL, indicating
+  // that the requested file was not found.
   return (Found ? NameGuid : NULL);
 }
 
