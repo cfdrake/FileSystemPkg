@@ -399,20 +399,64 @@ FfsGetInfo (
   )
 {
   EFI_STATUS Status;
+  EFI_FILE_INFO                *FileInfo;
+  EFI_FILE_SYSTEM_INFO         *FsInfo;
+  FILE_PRIVATE_DATA            *PrivateFile;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Start of func ***\n"));
+
+  // Grab the associated private data.
+  PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
 
   // Check InformationType.
   if (CompareGuid (InformationType, &gEfiFileInfoGuid)) {
     // Requesting EFI_FILE_INFO.
     DEBUG ((EFI_D_INFO, "*** FfsGetInfo: EFI_FILE_INFO request ***\n"));
+
+    // Determine if the size of Buffer is adequate, and if not, break so we can
+    // return an error and calculate the needed size;
+    if (*BufferSize < SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID) {
+      // Error condition.
+      *BufferSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
+      Status = EFI_BUFFER_TOO_SMALL;
+    } else {
+      // Allocate and fill out an EFI_FILE_INFO instance for this file.
+      FileInfo = AllocateZeroPool (SIZE_OF_EFI_FILE_INFO);
+      FileInfo->Size = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
+      FileInfo->CreateTime = mModuleLoadTime;
+      FileInfo->LastAccessTime = mModuleLoadTime;
+      FileInfo->ModificationTime = mModuleLoadTime;
+      FileInfo->Attribute = EFI_FILE_READ_ONLY;
+      //FileInfo->FileName = PrivateFile->FileName;
+
+      // Set the next params based on whether the file is a directory or not.
+      if (PrivateFile->IsDirectory) {
+        // Calculate size of the directory.
+        FileInfo->FileSize = 0; // FIXME:
+
+        // Update the Attributes field and calculate the size.
+        if (PrivateFile->IsDirectory) {
+          FileInfo->Attribute |= EFI_FILE_DIRECTORY;
+        }
+      } else {
+        // Calculate the size of the file.
+        FileInfo->FileSize = 0; // FIXME:
+      }
+
+      // Use the same value for PhysicalSize as FileSize calculated beforehand.
+      FileInfo->PhysicalSize = FileInfo->FileSize;
+
+      // Copy the memory to Buffer and free the temporary data structure.
+      CopyMem (Buffer, &FileInfo, SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID);
+      FreePool (FileInfo);
+    }
   } else if (CompareGuid (InformationType, &gEfiFileSystemInfoGuid)) {
     // Requesting EFI_FILE_SYSTEM_INFO.
     DEBUG ((EFI_D_INFO, "*** FfsGetInfo: EFI_FILE_SYSTEM_INFO request ***\n"));
-  } else if (CompareGuid (InformationType, &gEfiFileSystemVolumeLabelInfoIdGuid)) {
-    // Requesting EFI_FILE_SYSTEM_VOLUME_LABEL.
-    DEBUG ((EFI_D_INFO, "*** FfsGetInfo: EFI_VOLUME_NAME request ***\n"));
+
+    FsInfo = AllocateZeroPool (SIZE_OF_EFI_FILE_SYSTEM_INFO);
+    FreePool (FsInfo);
   } else {
     // Invalid value.
     DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Invalid request ***\n"));
