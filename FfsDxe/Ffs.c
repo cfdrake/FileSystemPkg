@@ -479,7 +479,8 @@ FfsGetInfo (
       // Set the next params based on whether the file is a directory or not.
       if (PrivateFile->IsDirectory) {
         // Calculate size of the directory.
-        FileInfo->FileSize = 0; // FIXME:
+        FileInfo->FileSize = FvGetVolumeSize (
+                               PrivateFile->FileSystem->FirmwareVolume2);
 
         // Update the Attributes field and calculate the size.
         if (PrivateFile->IsDirectory) {
