@@ -189,25 +189,22 @@ FfsOpenVolume (
   OUT EFI_FILE_PROTOCOL               **Root
   )
 {
-  EFI_STATUS                    Status;
-  FILE_SYSTEM_PRIVATE_DATA      *PrivateFileSystem;
-  FILE_PRIVATE_DATA             *PrivateFile;
-  DIR_INFO                      *RootInfo;
+  EFI_STATUS               Status;
+  FILE_SYSTEM_PRIVATE_DATA *PrivateFileSystem;
+  FILE_PRIVATE_DATA        *PrivateFile;
+  DIR_INFO                 *RootInfo;
   
-  Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: Start\n"));
 
   // Get private structure for This.
   PrivateFileSystem = FILE_SYSTEM_PRIVATE_DATA_FROM_THIS (This);
-  DEBUG ((EFI_D_INFO, "FfsOpenVolume: Grab private filesys struct\n"));
 
   // Allocate a new private FILE_PRIVATE_DATA instance.
   PrivateFile = NULL;
-
   PrivateFile = AllocateCopyPool (
-              sizeof (FILE_PRIVATE_DATA),
-              (VOID *) &mFilePrivateDataTemplate
-              );
+                  sizeof (FILE_PRIVATE_DATA),
+                  (VOID *) &mFilePrivateDataTemplate
+                  );
 
   if (PrivateFile == NULL) {
     DEBUG ((EFI_D_ERROR, "FfsOpenVolume: Couldn't allocate private file\n"));
@@ -223,15 +220,15 @@ FfsOpenVolume (
   PrivateFile->IsDirectory = TRUE;
   PrivateFile->FileInfo    = NULL;
 
-  RootInfo = AllocateZeroPool (sizeof (DIR_INFO));
+  RootInfo                 = AllocateZeroPool (sizeof (DIR_INFO));
   InitializeListHead (&(RootInfo->Children));
   PrivateFile->DirInfo     = RootInfo;
 
-  // Set the root folder of the file system.
+  // Set the root folder of the file system and the outgoing paramater Root,
+  // and set the status code to return to EFI_SUCCESS.
   PrivateFileSystem->Root = PrivateFile;
-
-  // Set outgoing parameters.
   *Root = &(PrivateFile->File);
+  Status = EFI_SUCCESS;
 
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: End of func\n"));
   return Status;
