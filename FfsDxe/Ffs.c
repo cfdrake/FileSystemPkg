@@ -398,12 +398,12 @@ FfsGetInfo (
   OUT VOID *Buffer
   )
 {
-  EFI_STATUS Status;
+  EFI_STATUS                   Status;
   EFI_FILE_INFO                *FileInfo;
   EFI_FILE_SYSTEM_INFO         *FsInfo;
   FILE_PRIVATE_DATA            *PrivateFile;
+  UINTN                        DataSize;
 
-  Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Start of func ***\n"));
 
   // Grab the associated private data.
@@ -416,14 +416,16 @@ FfsGetInfo (
 
     // Determine if the size of Buffer is adequate, and if not, break so we can
     // return an error and calculate the needed size;
-    if (*BufferSize < SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID) {
+    DataSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
+
+    if (*BufferSize < DataSize) {
       // Error condition.
-      *BufferSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
+      *BufferSize = DataSize;
       Status = EFI_BUFFER_TOO_SMALL;
     } else {
       // Allocate and fill out an EFI_FILE_INFO instance for this file.
-      FileInfo = AllocateZeroPool (SIZE_OF_EFI_FILE_INFO);
-      FileInfo->Size = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
+      FileInfo = AllocateZeroPool (DataSize);
+      FileInfo->Size = DataSize;
       FileInfo->CreateTime = mModuleLoadTime;
       FileInfo->LastAccessTime = mModuleLoadTime;
       FileInfo->ModificationTime = mModuleLoadTime;
@@ -447,20 +449,48 @@ FfsGetInfo (
       // Use the same value for PhysicalSize as FileSize calculated beforehand.
       FileInfo->PhysicalSize = FileInfo->FileSize;
 
-      // Copy the memory to Buffer and free the temporary data structure.
-      CopyMem (Buffer, &FileInfo, SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID);
+      // Copy the memory to Buffer, set the output value of BufferSize, and
+      // free the temporary data structure.
+      CopyMem (Buffer, &FileInfo, DataSize);
+      *BufferSize = DataSize;
       FreePool (FileInfo);
+
+      Status = EFI_SUCCESS;
     }
   } else if (CompareGuid (InformationType, &gEfiFileSystemInfoGuid)) {
     // Requesting EFI_FILE_SYSTEM_INFO.
     DEBUG ((EFI_D_INFO, "*** FfsGetInfo: EFI_FILE_SYSTEM_INFO request ***\n"));
 
-    FsInfo = AllocateZeroPool (SIZE_OF_EFI_FILE_SYSTEM_INFO);
-    FreePool (FsInfo);
+    // Determine if the size of Buffer is adequate, and if not, break so we can
+    // return an error and calculate the needed size;
+    DataSize = SIZE_OF_EFI_FILE_SYSTEM_INFO + SIZE_OF_GUID;
+
+    if (*BufferSize < DataSize) {
+      // Error condition.
+      *BufferSize = DataSize;
+      Status = EFI_BUFFER_TOO_SMALL;
+    } else {
+      // Allocate and fill out an EFI_FILE_INFO instance for this file.
+      FsInfo = AllocateZeroPool (DataSize);
+      FsInfo->Size = DataSize;
+      FsInfo->ReadOnly = TRUE;
+      FsInfo->VolumeSize = 0;  // FIXME:
+      FsInfo->FreeSpace = 0;
+      FsInfo->BlockSize = 512;
+      //FsInfo->VolumeLabel
+      
+      // Copy the memory to Buffer, set the output value of BufferSize, and
+      // free the temporary data structure.
+      CopyMem (Buffer, &FileInfo, DataSize);
+      *BufferSize = DataSize;
+      FreePool (FsInfo);
+
+      Status = EFI_SUCCESS;
+    }
   } else {
-    // Invalid value.
+    // Invalid InformationType GUID.
     DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Invalid request ***\n"));
-    return EFI_UNSUPPORTED;
+    Status = EFI_UNSUPPORTED;
   }
 
   return Status;
