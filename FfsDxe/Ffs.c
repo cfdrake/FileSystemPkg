@@ -134,6 +134,50 @@ FvGetFile (
   return (Found ? NameGuid : NULL);
 }
 
+UINTN
+FvGetVolumeSize (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2
+  )
+{
+  EFI_STATUS                    Status;
+  VOID                          *Key;
+  EFI_FV_FILETYPE               FileType;
+  EFI_GUID                      *NameGuid;
+  EFI_FV_FILE_ATTRIBUTES        FvAttributes;
+  UINTN                         Size, TotalSize;
+
+  // Loop through all FV2 files.
+  TotalSize    = 0;
+  NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
+  Key          = AllocateZeroPool (Fv2->KeySize);
+
+  while (TRUE) {
+    // Grab the next file in the Fv2 volume.
+    Status = Fv2->GetNextFile (Fv2, 
+                               Key,
+                               &FileType,
+                               NameGuid,
+                               &FvAttributes,
+                               &Size);
+
+    // Update the sum of file sizes.
+    TotalSize += Size;
+
+    // Check exit condition. If Status is an error status, then the list of
+    // files tried has been exhausted. Break from the loop and return NULL.
+    if (EFI_ERROR (Status)) {
+      break;
+    }
+  }
+
+  // Free all allocated memory.
+  FreePool (NameGuid);
+  FreePool (Key);
+
+  // Return the size of the volume.
+  return TotalSize;
+}
+
 //
 // SimpleFileSystem and File protocol functions
 //
@@ -474,7 +518,8 @@ FfsGetInfo (
       FsInfo = AllocateZeroPool (DataSize);
       FsInfo->Size = DataSize;
       FsInfo->ReadOnly = TRUE;
-      FsInfo->VolumeSize = 0;  // FIXME:
+      FsInfo->VolumeSize = FvGetVolumeSize (
+                             PrivateFile->FileSystem->FirmwareVolume2);
       FsInfo->FreeSpace = 0;
       FsInfo->BlockSize = 512;
       //FsInfo->VolumeLabel
