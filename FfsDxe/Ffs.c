@@ -301,9 +301,9 @@ FfsClose (IN EFI_FILE_PROTOCOL *This)
 {
   FILE_PRIVATE_DATA *PrivateFile;
 
-  // Grab the associated private data.
   DEBUG ((EFI_D_INFO, "*** FfsClose: Start of func ***\n"));
 
+  // Grab the associated private data.
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
 
   // Free up all of the private data.
@@ -402,7 +402,6 @@ FfsSetPosition (
   IN UINT64 Position
   )
 {
-  EFI_STATUS        Status;
   FILE_PRIVATE_DATA *PrivateFile;
 
   DEBUG ((EFI_D_INFO, "*** FfsSetPosition: Start of func ***\n"));
@@ -427,7 +426,7 @@ FfsSetPosition (
   }
 
   DEBUG ((EFI_D_INFO, "*** FfsSetPosition: End of func ***\n"));
-  return Status;
+  return EFI_SUCCESS;
 }
 
 EFI_STATUS
