@@ -91,14 +91,14 @@ FvGetFile (
 
 **/
 {
-  EFI_STATUS                    Status;
-  BOOLEAN                       Found;
-  VOID                          *Key;
-  EFI_FV_FILETYPE               FileType;
-  EFI_GUID                      *NameGuid;
-  EFI_FV_FILE_ATTRIBUTES        FvAttributes;
-  UINTN                         Size;
-  CHAR16                        *GuidAsString;
+  EFI_STATUS             Status;
+  BOOLEAN                Found;
+  VOID                   *Key;
+  EFI_FV_FILETYPE        FileType;
+  EFI_GUID               *NameGuid;
+  EFI_FV_FILE_ATTRIBUTES FvAttributes;
+  UINTN                  Size;
+  CHAR16                 *GuidAsString;
 
   // Loop through all FV2 files.
   Found        = FALSE;
@@ -158,12 +158,12 @@ FvGetVolumeSize (
 
 **/
 {
-  EFI_STATUS                    Status;
-  VOID                          *Key;
-  EFI_FV_FILETYPE               FileType;
-  EFI_GUID                      *NameGuid;
-  EFI_FV_FILE_ATTRIBUTES        FvAttributes;
-  UINTN                         Size, TotalSize;
+  EFI_STATUS             Status;
+  VOID                   *Key;
+  EFI_FV_FILETYPE        FileType;
+  EFI_GUID               *NameGuid;
+  EFI_FV_FILE_ATTRIBUTES FvAttributes;
+  UINTN                  Size, TotalSize;
 
   // Loop through all FV2 files.
   TotalSize    = 0;
@@ -313,10 +313,10 @@ FfsOpen (
 
 **/
 {
-  EFI_STATUS                      Status;
-  FILE_PRIVATE_DATA               *PrivateFile;
-  EFI_GUID                        *Guid;
-  FILE_SYSTEM_PRIVATE_DATA        *FileSystem;
+  EFI_STATUS               Status;
+  FILE_PRIVATE_DATA        *PrivateFile;
+  EFI_GUID                 *Guid;
+  FILE_SYSTEM_PRIVATE_DATA *FileSystem;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
@@ -611,11 +611,11 @@ FfsGetInfo (
                                the request.
 **/
 {
-  EFI_STATUS                   Status;
-  EFI_FILE_INFO                *FileInfo;
-  EFI_FILE_SYSTEM_INFO         *FsInfo;
-  FILE_PRIVATE_DATA            *PrivateFile;
-  UINTN                        DataSize;
+  EFI_STATUS           Status;
+  EFI_FILE_INFO        *FileInfo;
+  EFI_FILE_SYSTEM_INFO *FsInfo;
+  FILE_PRIVATE_DATA    *PrivateFile;
+  UINTN                DataSize;
 
   DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Start of func ***\n"));
 
