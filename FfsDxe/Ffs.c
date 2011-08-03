@@ -696,7 +696,7 @@ FfsGetInfo (
       
       // Copy the memory to Buffer, set the output value of BufferSize, and
       // free the temporary data structure.
-      CopyMem (Buffer, &FileInfo, DataSize);
+      CopyMem (Buffer, FsInfo, DataSize);
       *BufferSize = DataSize;
       FreePool (FsInfo);
 
