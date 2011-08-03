@@ -665,10 +665,9 @@ FfsGetInfo (
 
       // Copy the memory to Buffer, set the output value of BufferSize, and
       // free the temporary data structure.
-      CopyMem (Buffer, &FileInfo, DataSize);
+      CopyMem (Buffer, FileInfo, DataSize);
       *BufferSize = DataSize;
       FreePool (FileInfo);
-
       Status = EFI_SUCCESS;
     }
   } else if (CompareGuid (InformationType, &gEfiFileSystemInfoGuid)) {
@@ -699,7 +698,6 @@ FfsGetInfo (
       CopyMem (Buffer, FsInfo, DataSize);
       *BufferSize = DataSize;
       FreePool (FsInfo);
-
       Status = EFI_SUCCESS;
     }
   } else {
