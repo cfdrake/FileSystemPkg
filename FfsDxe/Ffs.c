@@ -616,6 +616,7 @@ FfsGetInfo (
   EFI_FILE_SYSTEM_INFO *FsInfo;
   FILE_PRIVATE_DATA    *PrivateFile;
   UINTN                DataSize;
+  CHAR16               *VolumeLabel;
 
   DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Start of func ***\n"));
 
@@ -691,7 +692,14 @@ FfsGetInfo (
                              PrivateFile->FileSystem->FirmwareVolume2);
       FsInfo->FreeSpace = 0;
       FsInfo->BlockSize = 512;
-      //FsInfo->VolumeLabel
+
+      VolumeLabel = AllocateZeroPool (SIZE_OF_FV_LABEL);
+      UnicodeSPrint (VolumeLabel,
+                     SIZE_OF_FV_LABEL,
+                     L"FV2@0x%x",
+                     &(PrivateFile->FileSystem->FirmwareVolume2));
+      StrCpy (FsInfo->VolumeLabel, VolumeLabel);
+      FreePool (VolumeLabel);
       
       // Copy the memory to Buffer, set the output value of BufferSize, and
       // free the temporary data structure.
