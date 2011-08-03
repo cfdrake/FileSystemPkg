@@ -80,6 +80,16 @@ FvGetFile (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
   IN CHAR16                        *FileName
   )
+/**
+  Gets an EFI_GUID representing a FV2 given in a stringified GUID name.
+
+  @param  Fv2      A pointer to the firmware volume to search.
+  @param  FileName A string representing the file that the system is trying to access.
+
+  @retval a GUID The file was found, and the associated GUID was returned.
+  @retval NULL   The file was not found.
+
+**/
 {
   EFI_STATUS                    Status;
   BOOLEAN                       Found;
@@ -138,6 +148,15 @@ UINTN
 FvGetVolumeSize (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2
   )
+/**
+  Sums the file sizes of all files in a firmware volume to find the total size
+  of the volume.
+
+  @param  Fv2      A pointer to the firmware volume to calculate the size for.
+
+  @retval The sum of all of the file sizes on a given volume.
+
+**/
 {
   EFI_STATUS                    Status;
   VOID                          *Key;
