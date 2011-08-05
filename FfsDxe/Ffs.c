@@ -419,6 +419,7 @@ FfsOpen (
   FILE_PRIVATE_DATA        *PrivateFile;
   EFI_GUID                 *Guid;
   FILE_SYSTEM_PRIVATE_DATA *FileSystem;
+  CHAR16                   *CleanPath;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
@@ -430,12 +431,14 @@ FfsOpen (
     return EFI_WRITE_PROTECTED;
   }
 
-  DEBUG ((EFI_D_INFO, "OPENING : %s\n", FileName));
+  DEBUG ((EFI_D_INFO, "FfsOpen: Opening: %s\n", FileName));
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
+  CleanPath = PathCleanUpDirectories (FileName);
+  DEBUG ((EFI_D_INFO, "FfsOpen: Path reconstructed as: %s\n", CleanPath));
 
   // Check the filename that was specified to open.
-  if (StrCmp (FileName, L"\\") == 0 ||
-             (StrCmp (FileName, L".") == 0 && PrivateFile->IsDirectory)) {
+  if (StrCmp (CleanPath, L"\\") == 0 ||
+             (StrCmp (CleanPath, L".") == 0 && PrivateFile->IsDirectory)) {
     // Open the root directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open root\n"));
 
@@ -443,7 +446,7 @@ FfsOpen (
     *NewHandle = &(FileSystem->Root->File);
 
     return Status;
-  } else if (StrCmp (FileName, L"..") == 0) {
+  } else if (StrCmp (CleanPath, L"..") == 0) {
     // Open the parent directory.
     DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
 
