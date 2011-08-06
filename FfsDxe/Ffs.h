@@ -103,7 +103,8 @@ struct _DIR_INFO {
 };
 
 struct _FILE_INFO {
-  BOOLEAN IsExecutable;
+  BOOLEAN  IsExecutable;
+  EFI_GUID NameGuid;
 };
 
 #define FILE_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_PRIVATE_DATA, File, FILE_PRIVATE_DATA_SIGNATURE)
