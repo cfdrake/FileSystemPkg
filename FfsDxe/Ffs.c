@@ -111,7 +111,7 @@ IsFileExecutable (
 
   // Determine and return if the machine type is supported or not.
   MachineType = PeCoffLoaderGetMachineType (Buffer);
-  return EFI_MACHINE_TYPE_SUPPORTED (MachineType);
+  return EFI_IMAGE_MACHINE_TYPE_SUPPORTED (MachineType);
 }
 
 EFI_GUID *

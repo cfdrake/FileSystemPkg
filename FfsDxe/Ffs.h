@@ -48,6 +48,7 @@ either expressed or implied, of Colin Drake.
 #include <Library/UefiLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/MemoryAllocationLib.h>
+#include <Uefi/UefiBaseType.h>
 
 #define END_OF_FILE_POSITION 0xFFFFFFFFFFFFFFFF
 #define SIZE_OF_GUID         sizeof (CHAR16) * 37
