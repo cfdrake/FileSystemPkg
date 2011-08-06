@@ -75,6 +75,45 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
 // Misc. helper methods
 //
 
+BOOLEAN
+IsFileExecutable (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
+  IN EFI_GUID                      *FileGuid
+  )
+{
+  EFI_STATUS       Status;
+  EFI_SECTION_TYPE SectionType;
+  VOID             *Buffer;
+  UINTN            MachineType,
+                   BufferSize,
+                   SectionInstance,
+                   AuthenticationStatus;
+
+  // Initialize local variables.
+  SectionType = EFI_SECTION_PE32;
+  Buffer = NULL;
+  SectionInstance = 0;
+  BufferSize = 0;
+
+  // Read the executable section of the file passed in.
+  Status = Fv2->ReadSection (Fv2,
+                             FileGuid,
+                             SectionType,
+                             SectionInstance,
+                             &Buffer,
+                             &BufferSize,
+                             &AuthenticationStatus);
+
+  // Return FALSE if there's an error reading the executable section.
+  if (EFI_ERROR (Status)) {
+    return FALSE;
+  }
+
+  // Determine and return if the machine type is supported or not.
+  MachineType = PeCoffLoaderGetMachineType (Buffer);
+  return EFI_MACHINE_TYPE_SUPPORTED (MachineType);
+}
+
 EFI_GUID *
 FvGetFile (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
