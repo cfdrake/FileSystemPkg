@@ -848,7 +848,8 @@ FfsGetInfo (
         }
       } else {
         // Calculate the size of the file.
-        FileInfo->FileSize = 0; // FIXME:
+        FileInfo->FileSize = FvFileGetSize (PrivateFile->FileSystem->FirmwareVolume2,
+                                            &(PrivateFile->FileInfo->NameGuid));
       }
 
       // Use the same value for PhysicalSize as FileSize calculated beforehand.
