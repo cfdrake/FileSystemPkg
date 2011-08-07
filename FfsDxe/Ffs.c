@@ -468,7 +468,8 @@ FfsOpen (
   // Check for a valid OpenMode parameter. Since this is a read-only filesystem
   // it must not be EFI_FILE_MODE_WRITE or EFI_FILE_MODE_CREATE. Additionally,
   // ensure that the file name to be accessed isn't empty.
-  if (!(OpenMode & EFI_FILE_MODE_READ)) {
+  if (OpenMode & EFI_FILE_MODE_READ ||
+      OpenMode & EFI_FILE_MODE_CREATE) {
     DEBUG ((EFI_D_INFO, "FfsOpen: OpenMode must be Read\n"));
     return EFI_WRITE_PROTECTED;
   } else if (FileName == NULL || StrCmp (FileName, L"") == 0) {
