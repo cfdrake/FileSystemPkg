@@ -762,7 +762,8 @@ FfsSetPosition (
   // Set the position in the private data structures.
   if (Position == END_OF_FILE_POSITION) {
     // Set to the end-of-file.
-    // TODO: fixme
+    PrivateFile->Position = FvFileGetSize (PrivateFile->FileSystem->FirmwareVolume2,
+                                           &(PrivateFile->FileInfo->NameGuid));
   } else {
     // Set position.
     PrivateFile->Position = Position;
