@@ -75,6 +75,31 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
 // Misc. helper methods
 //
 
+UINTN
+FvFileGetSize (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
+  IN EFI_GUID                      *FileGuid
+  )
+{
+  UINTN                  BufferSize;
+  UINT32                 AuthenticationStatus;
+  EFI_FV_FILETYPE        FoundType;
+  EFI_FV_FILE_ATTRIBUTES FileAttributes;
+
+  // When ReadFile is called with Buffer == NULL, the value returned in 
+  // BufferSize will be the size of the file.
+  Fv2->ReadFile (Fv2,
+                 FileGuid,
+                 NULL,
+                 &BufferSize,
+                 &FoundType,
+                 &FileAttributes,
+                 &AuthenticationStatus);
+
+  // Return the file size.
+  return BufferSize;
+}
+
 BOOLEAN
 IsFileExecutable (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
@@ -110,7 +135,6 @@ IsFileExecutable (
   }
 
   // Determine and return if the machine type is supported or not.
-                
   MachineType = PeCoffLoaderGetMachineType (Buffer);
   return EFI_IMAGE_MACHINE_TYPE_SUPPORTED (MachineType);
 }
