@@ -110,6 +110,7 @@ IsFileExecutable (
   }
 
   // Determine and return if the machine type is supported or not.
+                
   MachineType = PeCoffLoaderGetMachineType (Buffer);
   return EFI_IMAGE_MACHINE_TYPE_SUPPORTED (MachineType);
 }
@@ -455,7 +456,8 @@ FfsOpen (
 **/
 {
   EFI_STATUS               Status;
-  FILE_PRIVATE_DATA        *PrivateFile;
+  FILE_PRIVATE_DATA        *PrivateFile, *NewPrivateFile;
+  FILE_INFO                *FileInfo;
   EFI_GUID                 *Guid;
   FILE_SYSTEM_PRIVATE_DATA *FileSystem;
   CHAR16                   *CleanPath;
@@ -501,6 +503,21 @@ FfsOpen (
     if (Guid != NULL) {
       // Found file.
       DEBUG ((EFI_D_INFO, "FfsOpen: File found\n"));
+
+      // Allocate a file info instance for this file.
+      FileInfo = AllocateZeroPool (sizeof (FILE_INFO));
+      FileInfo->IsExecutable = IsFileExecutable(PrivateFile->FileSystem->FirmwareVolume2,
+                                                Guid);
+      FileInfo->NameGuid = *Guid;
+
+      // Allocate a new private file instance for this found file.
+      NewPrivateFile = AllocateCopyPool (sizeof (FILE_PRIVATE_DATA),
+                                         &mFilePrivateDataTemplate);
+      NewPrivateFile->DirInfo = NULL;
+      NewPrivateFile->FileInfo = FileInfo;
+
+      // Assign the outgoing parameters
+      *NewHandle = &(NewPrivateFile->File);
     } else {
       // File not found.
       DEBUG ((EFI_D_INFO, "FfsOpen: File not found\n"));

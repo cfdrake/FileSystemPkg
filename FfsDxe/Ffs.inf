@@ -60,6 +60,7 @@
   UefiBootServicesTableLib
   MemoryAllocationLib
   BaseMemoryLib
+  PeCoffGetEntryPointLib
   UefiLib
   UefiDriverEntryPoint
   UefiRuntimeServicesTableLib
