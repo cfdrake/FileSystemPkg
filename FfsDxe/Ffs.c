@@ -682,15 +682,17 @@ FfsRead (
 
 **/
 {
-  EFI_STATUS        Status;
-  FILE_PRIVATE_DATA *PrivateFile;
-  UINT64            ReadStart, FileSize;
+  EFI_STATUS                    Status;
+  FILE_PRIVATE_DATA             *PrivateFile;
+  UINT64                        ReadStart, FileSize;
+  EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start of func ***\n"));
 
   // Grab private data and determine the starting location to read from.
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
+  Fv2 = PrivateFile->FileSystem->FirmwareVolume2;
   PrivateFile->File.GetPosition (&(PrivateFile->File), &ReadStart);
 
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start reading from %d ***\n", ReadStart));
@@ -732,7 +734,15 @@ FfsRead (
       *BufferSize = FileSize - ReadStart;
     }
 
-    // TODO: Read the data.
+    // Read the data.
+    if (IsFileExecutable (PrivateFile->FileSystem->FirmwareVolume2,
+                          &(PrivateFile->FileInfo->NameGuid))) {
+      // Read executable section. 
+      // Fv2->ReadSection (..);
+    } else {
+      // Read from whole file.
+      // Fv2->ReadFile (..);
+    }
 
     // Update the file's position to be the original location added to the
     // number of bytes read.
