@@ -694,6 +694,21 @@ FfsRead (
   if (PrivateFile->IsDirectory) {
     // Called on a Directory.
     DEBUG ((EFI_D_INFO, "*** FfsRead: Called on directory ***\n"));
+
+    // Ensure that Buffer is large enough to hold the EFI_FILE_INFO struct.
+    if (*BufferSize < SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID) {
+      *BufferSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
+      return EFI_BUFFER_TOO_SMALL;
+    }
+
+    // Ensure we're not at the end of the directory.
+    if (FvGetNumberOfFiles(PrivateFile->FileSystem->FirmwareVolume2) > ReadStart) {
+      *BufferSize = 0;
+      return EFI_SUCCESS;
+    }
+
+    // TODO: Grab the next file in the directory.
+
   } else {
     // Called on a File.
     DEBUG ((EFI_D_INFO, "*** FfsRead: Called on file ***\n"));
