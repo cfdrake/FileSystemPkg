@@ -92,7 +92,7 @@ FvGetNumberOfFiles (
   UINTN                  Size, NumFiles;
 
   // Loop through all FV2 files.
-  TotalSize    = 0;
+  NumFiles     = 0;
   NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
   Key          = AllocateZeroPool (Fv2->KeySize);
 
@@ -118,6 +118,8 @@ FvGetNumberOfFiles (
   // Free all allocated memory.
   FreePool (NameGuid);
   FreePool (Key);
+
+  DEBUG ((EFI_D_INFO, "FvGetNumberOfFiles: Directory has %d files\n", NumFiles));
 
   // Return number of files on the volume.
   return NumFiles;
@@ -687,8 +689,11 @@ FfsRead (
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start of func ***\n"));
 
-  // Grab private data.
+  // Grab private data and determine the starting location to read from.
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
+  PrivateFile->File.GetPosition (&(PrivateFile->File), &ReadStart);
+
+  DEBUG ((EFI_D_INFO, "*** FfsRead: Start reading from %d ***\n", ReadStart));
 
   // Check filetype.
   if (PrivateFile->IsDirectory) {
@@ -697,27 +702,28 @@ FfsRead (
 
     // Ensure that Buffer is large enough to hold the EFI_FILE_INFO struct.
     if (*BufferSize < SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID) {
+      DEBUG ((EFI_D_INFO, "*** FfsRead: Need a larger buffer\n"));
       *BufferSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
       return EFI_BUFFER_TOO_SMALL;
     }
 
     // Ensure we're not at the end of the directory.
-    if (FvGetNumberOfFiles(PrivateFile->FileSystem->FirmwareVolume2) > ReadStart) {
+    if (FvGetNumberOfFiles(PrivateFile->FileSystem->FirmwareVolume2) <= ReadStart) {
+      DEBUG ((EFI_D_INFO, "*** FfsRead: At end of directory listing\n"));
       *BufferSize = 0;
       return EFI_SUCCESS;
     }
 
     // TODO: Grab the next file in the directory.
 
+    // Update the current position.
+    PrivateFile->File.SetPosition(&(PrivateFile->File), ReadStart + 1);
   } else {
     // Called on a File.
     DEBUG ((EFI_D_INFO, "*** FfsRead: Called on file ***\n"));
 
     // Determine how many bytes we will actually read. If the read request is
     // going to go out of bounds, change it to read only to the EOF.
-    PrivateFile->File.GetPosition (&(PrivateFile->File),
-                                   &ReadStart);
-
     FileSize = FvFileGetSize (PrivateFile->FileSystem->FirmwareVolume2,
                               &(PrivateFile->FileInfo->NameGuid));
 
