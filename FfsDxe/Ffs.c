@@ -635,6 +635,7 @@ FfsRead (
 {
   EFI_STATUS        Status;
   FILE_PRIVATE_DATA *PrivateFile;
+  UINT64            ReadStart, FileSize;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start of func ***\n"));
@@ -649,6 +650,26 @@ FfsRead (
   } else {
     // Called on a File.
     DEBUG ((EFI_D_INFO, "*** FfsRead: Called on file ***\n"));
+
+    // Determine how many bytes we will actually read. If the read request is
+    // going to go out of bounds, change it to read only to the EOF.
+    PrivateFile->File.GetPosition (&(PrivateFile->File),
+                                   &ReadStart);
+
+    FileSize = FvFileGetSize (PrivateFile->FileSystem->FirmwareVolume2,
+                              &(PrivateFile->FileInfo->NameGuid));
+
+    if (ReadStart + *BufferSize > FileSize) {
+      // Cap off the amount of data read so we don't go past the EOF.
+      *BufferSize = FileSize - ReadStart;
+    }
+
+    // TODO: Read the data.
+
+    // Update the file's position to be the original location added to the
+    // number of bytes read.
+    PrivateFile->File.SetPosition (&(PrivateFile->File),
+                                   ReadStart + *BufferSize);
   }
 
   DEBUG ((EFI_D_INFO, "*** FfsRead: End of func ***\n"));
