@@ -77,6 +77,53 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
 //
 
 UINTN
+FvGetNumberOfFiles (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2
+  )
+/**
+
+**/
+{
+  EFI_STATUS             Status;
+  VOID                   *Key;
+  EFI_FV_FILETYPE        FileType;
+  EFI_GUID               *NameGuid;
+  EFI_FV_FILE_ATTRIBUTES FvAttributes;
+  UINTN                  Size, NumFiles;
+
+  // Loop through all FV2 files.
+  TotalSize    = 0;
+  NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
+  Key          = AllocateZeroPool (Fv2->KeySize);
+
+  while (TRUE) {
+    // Grab the next file in the Fv2 volume.
+    Status = Fv2->GetNextFile (Fv2, 
+                               Key,
+                               &FileType,
+                               NameGuid,
+                               &FvAttributes,
+                               &Size);
+
+    // Update number of files.
+    NumFiles++;
+
+    // Check exit condition. If Status is an error status, then the list of
+    // files tried has been exhausted. Break from the loop and return NULL.
+    if (EFI_ERROR (Status)) {
+      break;
+    }
+  }
+
+  // Free all allocated memory.
+  FreePool (NameGuid);
+  FreePool (Key);
+
+  // Return number of files on the volume.
+  return NumFiles;
+}
+
+UINTN
 FvFileGetSize (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
   IN EFI_GUID                      *FileGuid
