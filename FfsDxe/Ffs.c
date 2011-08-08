@@ -1,6 +1,7 @@
 /** @file
 
 Copyright 2011 Colin Drake. All rights reserved.
+Copyright (c) 2011, Intel Corporation. All rights reserved.<BR>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -111,8 +112,8 @@ IsFileExecutable (
   VOID             *Buffer;
   UINTN            MachineType,
                    BufferSize,
-                   SectionInstance,
-                   AuthenticationStatus;
+                   SectionInstance;
+  UINT32           AuthenticationStatus;
 
   // Initialize local variables.
   SectionType = EFI_SECTION_PE32;
