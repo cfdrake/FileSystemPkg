@@ -588,7 +588,17 @@ FfsOpen (
       NewPrivateFile = AllocateCopyPool (sizeof (FILE_PRIVATE_DATA),
                                          &mFilePrivateDataTemplate);
       NewPrivateFile->DirInfo = NULL;
+      NewPrivateFile->FileSystem = PrivateFile->FileSystem;
       NewPrivateFile->FileInfo = FileInfo;
+
+      // Generate filename.
+      if (FileInfo->IsExecutable) {
+        // Executable file.
+        UnicodeSPrint (NewPrivateFile->FileName, SIZE_OF_GUID + 4, L"%g.efi", &Guid);
+      } else {
+        // Non-executable file.
+        UnicodeSPrint (NewPrivateFile->FileName, SIZE_OF_GUID + 4, L"%g.ffs", &Guid);
+      }
 
       // Assign the outgoing parameters
       *NewHandle = &(NewPrivateFile->File);
