@@ -92,13 +92,13 @@ FvGetNumberOfFiles (
   UINTN                  Size, NumFiles;
 
   // Loop through all FV2 files.
-  FileType     = EFI_FV_FILETYPE_ALL;
   NumFiles     = 0;
   NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
   Key          = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
     // Grab the next file in the Fv2 volume.
+    FileType = EFI_FV_FILETYPE_ALL;
     Status = Fv2->GetNextFile (Fv2, 
                                Key,
                                &FileType,
@@ -216,7 +216,6 @@ FvGetFile (
   CHAR16                 *GuidAsString;
 
   // Loop through all FV2 files.
-  FileType     = EFI_FV_FILETYPE_ALL;
   Found        = FALSE;
   GuidAsString = AllocateZeroPool (SIZE_OF_GUID);
   NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
@@ -224,6 +223,7 @@ FvGetFile (
 
   while (TRUE) {
     // Grab the next file in the Fv2 volume.
+    FileType = EFI_FV_FILETYPE_ALL;
     Status = Fv2->GetNextFile (Fv2, 
                                Key,
                                &FileType,
@@ -282,13 +282,13 @@ FvGetVolumeSize (
   UINTN                  Size, TotalSize;
 
   // Loop through all FV2 files.
-  FileType     = EFI_FV_FILETYPE_ALL;
   TotalSize    = 0;
   NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
   Key          = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
     // Grab the next file in the Fv2 volume.
+    FileType = EFI_FV_FILETYPE_ALL;
     Status = Fv2->GetNextFile (Fv2, 
                                Key,
                                &FileType,
