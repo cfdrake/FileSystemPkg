@@ -81,6 +81,11 @@ FvGetNumberOfFiles (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2
   )
 /**
+  Gets the number of files on a given EFI_FIRMWARE_VOLUME2_PROTOCOL instance.
+
+  @param  Fv2      A pointer to the firmware volume to search.
+
+  @retval The number of files on the volume as an integer.
 
 **/
 {
@@ -131,6 +136,15 @@ FvFileGetSize (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
   IN EFI_GUID                      *FileGuid
   )
+/**
+  Gets the size of the file named by the provided GUID in FileGuid.
+
+  @param  Fv2      A pointer to the firmware volume to search.
+  @param  FileGuid A GUID representing the file that the system is trying to access.
+
+  @retval The size of the file in bytes.
+
+**/
 {
   UINTN                  BufferSize;
   UINT32                 AuthenticationStatus;
@@ -156,6 +170,15 @@ IsFileExecutable (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
   IN EFI_GUID                      *FileGuid
   )
+/**
+  Determines if the file identified by FileGuid is executable on the current system.
+
+  @param  Fv2      A pointer to the firmware volume to search.
+  @param  FileGuid A GUID naming the file that the system is trying to access.
+
+  @retval True or False if the file is executable.
+
+**/
 {
   EFI_STATUS       Status;
   EFI_SECTION_TYPE SectionType;
