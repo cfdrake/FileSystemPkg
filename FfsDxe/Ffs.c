@@ -92,6 +92,7 @@ FvGetNumberOfFiles (
   UINTN                  Size, NumFiles;
 
   // Loop through all FV2 files.
+  FileType     = EFI_FV_FILETYPE_ALL;
   NumFiles     = 0;
   NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
   Key          = AllocateZeroPool (Fv2->KeySize);
@@ -105,14 +106,14 @@ FvGetNumberOfFiles (
                                &FvAttributes,
                                &Size);
 
-    // Update number of files.
-    NumFiles++;
-
     // Check exit condition. If Status is an error status, then the list of
     // files tried has been exhausted. Break from the loop and return NULL.
     if (Status == EFI_NOT_FOUND) {
       break;
     }
+    
+    // Update number of files.
+    NumFiles++;
   }
 
   // Free all allocated memory.
@@ -215,6 +216,7 @@ FvGetFile (
   CHAR16                 *GuidAsString;
 
   // Loop through all FV2 files.
+  FileType     = EFI_FV_FILETYPE_ALL;
   Found        = FALSE;
   GuidAsString = AllocateZeroPool (SIZE_OF_GUID);
   NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
@@ -229,6 +231,13 @@ FvGetFile (
                                &FvAttributes,
                                &Size);
 
+    // Check exit condition. If Status is an error status, then the list of
+    // files tried has been exhausted. Break from the loop and return NULL.
+    if (Status == EFI_NOT_FOUND) {
+      DEBUG ((EFI_D_INFO, "FvGetFile: At last file or ERROR found...\n"));
+      break;
+    }
+
     // Check for the file we're looking for by converting the found GUID to a
     // string and testing with StrCmp(). If the GUID and FileName input string
     // are equal, then the requested file was found.
@@ -237,13 +246,6 @@ FvGetFile (
 
     if (StrCmp (GuidAsString, FileName) == 0) {
       Found = TRUE;
-      break;
-    }
-
-    // Check exit condition. If Status is an error status, then the list of
-    // files tried has been exhausted. Break from the loop and return NULL.
-    if (Status == EFI_NOT_FOUND) {
-      DEBUG ((EFI_D_INFO, "FvGetFile: At last file or ERROR found...\n"));
       break;
     }
   }
@@ -280,6 +282,7 @@ FvGetVolumeSize (
   UINTN                  Size, TotalSize;
 
   // Loop through all FV2 files.
+  FileType     = EFI_FV_FILETYPE_ALL;
   TotalSize    = 0;
   NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
   Key          = AllocateZeroPool (Fv2->KeySize);
