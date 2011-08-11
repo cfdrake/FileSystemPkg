@@ -110,7 +110,7 @@ FvGetNumberOfFiles (
 
     // Check exit condition. If Status is an error status, then the list of
     // files tried has been exhausted. Break from the loop and return NULL.
-    if (EFI_ERROR (Status)) {
+    if (Status == EFI_NOT_FOUND) {
       break;
     }
   }
@@ -242,7 +242,7 @@ FvGetFile (
 
     // Check exit condition. If Status is an error status, then the list of
     // files tried has been exhausted. Break from the loop and return NULL.
-    if (EFI_ERROR (Status)) {
+    if (Status == EFI_NOT_FOUND) {
       DEBUG ((EFI_D_INFO, "FvGetFile: At last file or ERROR found...\n"));
       break;
     }
@@ -298,7 +298,7 @@ FvGetVolumeSize (
 
     // Check exit condition. If Status is an error status, then the list of
     // files tried has been exhausted. Break from the loop and return NULL.
-    if (EFI_ERROR (Status)) {
+    if (Status == EFI_NOT_FOUND) {
       break;
     }
   }
