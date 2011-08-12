@@ -102,6 +102,7 @@ struct _FILE_PRIVATE_DATA {
 
 struct _DIR_INFO {
   LIST_ENTRY Children;
+  VOID       *Key;
 };
 
 struct _FILE_INFO {

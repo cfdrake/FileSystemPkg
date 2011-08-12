@@ -281,6 +281,41 @@ FvGetFile (
   return (Found ? OutputGuid : NULL);
 }
 
+EFI_GUID *
+RootGetNextFile (
+  IN OUT FILE_PRIVATE_DATA *PrivateFile
+  )
+/**
+
+**/
+{
+  EFI_STATUS                    Status;
+  EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
+  EFI_FV_FILETYPE               FileType;
+  EFI_GUID                      NameGuid, *OutputGuid;
+  EFI_FV_FILE_ATTRIBUTES        FvAttributes;
+  UINTN                         Size;
+
+  Fv2        = PrivateFile->FileSystem->FirmwareVolume2;
+  OutputGuid = AllocateZeroPool (sizeof (EFI_GUID));
+
+  // Grab the next file in the Fv2 volume. The Key parameter in this function
+  // is preserved and set into PrivateFile->DirInfo->Key, so in the next call
+  // of this function, the next file will be found.
+  FileType = EFI_FV_FILETYPE_ALL;
+  Status = Fv2->GetNextFile (Fv2,
+                             PrivateFile->DirInfo->Key,
+                             &FileType,
+                             &NameGuid,
+                             &FvAttributes,
+                             &Size);
+
+  // Return either the GUID of a matching file or a pointer to NULL, indicating
+  // that the file was not found.
+  CopyMem (OutputGuid, &NameGuid, sizeof (EFI_GUID));
+  return (Status == EFI_NOT_FOUND ? OutputGuid : NULL);
+}
+
 UINTN
 FvGetVolumeSize (
   IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2
@@ -498,8 +533,12 @@ FfsOpenVolume (
   PrivateFile->FileInfo    = NULL;
 
   RootInfo                 = AllocateZeroPool (sizeof (DIR_INFO));
+  RootInfo->Key            = AllocateZeroPool (sizeof (PrivateFileSystem->
+                                                       FirmwareVolume2->
+                                                       KeySize));
   InitializeListHead (&(RootInfo->Children));
   PrivateFile->DirInfo     = RootInfo;
+  PrivateFile->Position    = 0;
 
   // Set the root folder of the file system and the outgoing paramater Root,
   // and set the status code to return to EFI_SUCCESS.
@@ -718,14 +757,15 @@ FfsRead (
   FILE_PRIVATE_DATA             *PrivateFile;
   UINT64                        ReadStart, FileSize;
   EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
+  //EFI_GUID                      *NextFileGuid;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start of func ***\n"));
 
   // Grab private data and determine the starting location to read from.
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
-  Fv2 = PrivateFile->FileSystem->FirmwareVolume2;
-  PrivateFile->File.GetPosition (&(PrivateFile->File), &ReadStart);
+  Fv2         = PrivateFile->FileSystem->FirmwareVolume2;
+  ReadStart   = PrivateFile->Position;
 
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start reading from %d ***\n", ReadStart));
 
@@ -749,9 +789,12 @@ FfsRead (
     }
 
     // TODO: Grab the next file in the directory.
+    //NextFileGuid = AllocateZeroPool (sizeof(EFI_GUID));
+    //NextFileGuid = RootGetNextFile (PrivateFile);
+    //DEBUG ((EFI_D_INFO, "FOUND %g\n", NextFileGuid));
 
     // Update the current position.
-    PrivateFile->File.SetPosition(&(PrivateFile->File), ReadStart + 1);
+    PrivateFile->Position += 1;
   } else {
     // Called on a File.
     DEBUG ((EFI_D_INFO, "*** FfsRead: Called on file ***\n"));
@@ -778,8 +821,7 @@ FfsRead (
 
     // Update the file's position to be the original location added to the
     // number of bytes read.
-    PrivateFile->File.SetPosition (&(PrivateFile->File),
-                                   ReadStart + *BufferSize);
+    PrivateFile->Position = ReadStart + *BufferSize;
   }
 
   DEBUG ((EFI_D_INFO, "*** FfsRead: End of func ***\n"));
@@ -898,6 +940,12 @@ FfsSetPosition (
   } else {
     // Set position.
     PrivateFile->Position = Position;
+
+    // Reset the key for GetNextFile as well as setting the position if need be.
+    if (PrivateFile->IsDirectory && Position == 0) {
+      ZeroMem (PrivateFile->DirInfo->Key,
+               PrivateFile->FileSystem->FirmwareVolume2->KeySize);
+    }
   }
 
   DEBUG ((EFI_D_INFO, "*** FfsSetPosition: End of func ***\n"));
