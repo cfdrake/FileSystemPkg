@@ -375,6 +375,44 @@ FvGetVolumeSize (
   return TotalSize;
 }
 
+FILE_PRIVATE_DATA *
+GuidToFile (
+  IN EFI_GUID                 *NameGuid,
+  IN FILE_SYSTEM_PRIVATE_DATA *FileSystem
+  )
+{
+  FILE_INFO *FileInfo;
+  FILE_PRIVATE_DATA *PrivateFile;
+
+  // Allocate new file and file info instances.
+  PrivateFile = AllocateCopyPool (sizeof (FILE_PRIVATE_DATA),
+                                  &mFilePrivateDataTemplate);
+  FileInfo    = AllocateZeroPool (sizeof (FILE_INFO));
+
+  // Allocate a file info instance for this file.
+  PrivateFile->DirInfo    = NULL;
+  PrivateFile->FileInfo   = FileInfo;
+  PrivateFile->FileSystem = FileSystem;
+  FileInfo->NameGuid      = *NameGuid;
+  FileInfo->IsExecutable  = IsFileExecutable(PrivateFile->
+                                               FileSystem->
+                                               FirmwareVolume2,
+                                             NameGuid);
+
+  // Generate filename.
+  PrivateFile->FileName = AllocateZeroPool (SIZE_OF_GUID);
+
+  if (FileInfo->IsExecutable) {
+    // Executable file.
+    UnicodeSPrint (PrivateFile->FileName, SIZE_OF_GUID, L"%g", NameGuid);
+  } else {
+    // Non-executable file.
+    UnicodeSPrint (PrivateFile->FileName, SIZE_OF_GUID, L"%g", NameGuid);
+  }
+
+  return PrivateFile;
+}
+
 BOOLEAN
 EFIAPI
 PathRemoveLastItem(
@@ -599,7 +637,6 @@ FfsOpen (
 {
   EFI_STATUS               Status;
   FILE_PRIVATE_DATA        *PrivateFile, *NewPrivateFile;
-  FILE_INFO                *FileInfo;
   EFI_GUID                 *Guid;
   FILE_SYSTEM_PRIVATE_DATA *FileSystem;
   CHAR16                   *CleanPath;
@@ -645,28 +682,7 @@ FfsOpen (
     if (Guid != NULL) {
       // Found file.
       DEBUG ((EFI_D_INFO, "FfsOpen: File found\n"));
-
-      // Allocate a file info instance for this file.
-      FileInfo = AllocateZeroPool (sizeof (FILE_INFO));
-      FileInfo->IsExecutable = IsFileExecutable(PrivateFile->FileSystem->FirmwareVolume2,
-                                                Guid);
-      FileInfo->NameGuid = *Guid;
-
-      // Allocate a new private file instance for this found file.
-      NewPrivateFile = AllocateCopyPool (sizeof (FILE_PRIVATE_DATA),
-                                         &mFilePrivateDataTemplate);
-      NewPrivateFile->DirInfo = NULL;
-      NewPrivateFile->FileSystem = PrivateFile->FileSystem;
-      NewPrivateFile->FileInfo = FileInfo;
-
-      // Generate filename.
-      if (FileInfo->IsExecutable) {
-        // Executable file.
-        UnicodeSPrint (NewPrivateFile->FileName, SIZE_OF_GUID + 4, L"%g.efi", &Guid);
-      } else {
-        // Non-executable file.
-        UnicodeSPrint (NewPrivateFile->FileName, SIZE_OF_GUID + 4, L"%g.ffs", &Guid);
-      }
+      NewPrivateFile = GuidToFile (Guid, PrivateFile->FileSystem);
 
       // Assign the outgoing parameters
       *NewHandle = &(NewPrivateFile->File);
@@ -761,7 +777,7 @@ FfsRead (
 **/
 {
   EFI_STATUS                    Status;
-  FILE_PRIVATE_DATA             *PrivateFile;
+  FILE_PRIVATE_DATA             *PrivateFile, *NextFile;
   UINT64                        ReadStart, FileSize;
   EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
   EFI_GUID                      *NextFileGuid;
@@ -795,10 +811,17 @@ FfsRead (
       return EFI_SUCCESS;
     }
 
-    // TODO: Grab the next file in the directory.
+    // Grab the next file in the directory.
     NextFileGuid = AllocateZeroPool (sizeof(EFI_GUID));
     NextFileGuid = RootGetNextFile (PrivateFile);
+
     DEBUG ((EFI_D_INFO, "FOUND %g\n", NextFileGuid));
+
+    NextFile = GuidToFile (NextFileGuid, PrivateFile->FileSystem);
+    NextFile->File.GetInfo (&(NextFile->File),
+                            &gEfiFileInfoGuid,
+                            BufferSize,
+                            Buffer);
 
     // Update the current position.
     PrivateFile->Position += 1;
@@ -993,7 +1016,7 @@ FfsGetInfo (
   EFI_FILE_SYSTEM_INFO *FsInfo;
   FILE_PRIVATE_DATA    *PrivateFile;
   UINTN                DataSize;
-  CHAR16               *VolumeLabel;
+  CHAR16               *VolumeLabel, *FileName;
 
   DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Start of func ***\n"));
 
@@ -1021,7 +1044,15 @@ FfsGetInfo (
       FileInfo->LastAccessTime = mModuleLoadTime;
       FileInfo->ModificationTime = mModuleLoadTime;
       FileInfo->Attribute = EFI_FILE_READ_ONLY;
-      //FileInfo->FileName = PrivateFile->FileName;
+
+      // Copy in file name.
+      FileName = AllocateZeroPool (SIZE_OF_GUID);
+      UnicodeSPrint (FileName,
+                     SIZE_OF_GUID,
+                     L"%s",
+                     PrivateFile->FileName);
+      StrCpy (FileInfo->FileName, FileName);
+      FreePool (FileName);
 
       // Set the next params based on whether the file is a directory or not.
       if (PrivateFile->IsDirectory) {
