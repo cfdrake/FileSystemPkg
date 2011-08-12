@@ -380,6 +380,16 @@ GuidToFile (
   IN EFI_GUID                 *NameGuid,
   IN FILE_SYSTEM_PRIVATE_DATA *FileSystem
   )
+/**
+  Returns a FILE_PRIVATE_DATA instance for a GUID.
+
+  @param  NameGuid   GUID representing the file to return.
+  @param  FileSystem The FILE_SYSTEM_PRIVATE_DATA that the new file is to be a
+                     part of.
+
+  @retval FILE_PRIVATE_DATA instance representing Fv2 file named by NameGuid.
+
+**/
 {
   FILE_INFO *FileInfo;
   FILE_PRIVATE_DATA *PrivateFile;
