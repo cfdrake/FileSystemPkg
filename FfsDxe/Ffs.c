@@ -92,13 +92,12 @@ FvGetNumberOfFiles (
   EFI_STATUS             Status;
   VOID                   *Key;
   EFI_FV_FILETYPE        FileType;
-  EFI_GUID               *NameGuid;
+  EFI_GUID               NameGuid;
   EFI_FV_FILE_ATTRIBUTES FvAttributes;
   UINTN                  Size, NumFiles;
 
   // Loop through all FV2 files.
   NumFiles     = 0;
-  NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
   Key          = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
@@ -107,7 +106,7 @@ FvGetNumberOfFiles (
     Status = Fv2->GetNextFile (Fv2, 
                                Key,
                                &FileType,
-                               NameGuid,
+                               &NameGuid,
                                &FvAttributes,
                                &Size);
 
@@ -122,7 +121,6 @@ FvGetNumberOfFiles (
   }
 
   // Free all allocated memory.
-  FreePool (NameGuid);
   FreePool (Key);
 
   DEBUG ((EFI_D_INFO, "FvGetNumberOfFiles: Directory has %d files\n", NumFiles));
@@ -233,7 +231,7 @@ FvGetFile (
   BOOLEAN                Found;
   VOID                   *Key;
   EFI_FV_FILETYPE        FileType;
-  EFI_GUID               *NameGuid;
+  EFI_GUID               NameGuid, *OutputGuid;
   EFI_FV_FILE_ATTRIBUTES FvAttributes;
   UINTN                  Size;
   CHAR16                 *GuidAsString;
@@ -241,7 +239,7 @@ FvGetFile (
   // Loop through all FV2 files.
   Found        = FALSE;
   GuidAsString = AllocateZeroPool (SIZE_OF_GUID);
-  NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
+  OutputGuid   = AllocateZeroPool (sizeof (EFI_GUID));
   Key          = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
@@ -250,7 +248,7 @@ FvGetFile (
     Status = Fv2->GetNextFile (Fv2, 
                                Key,
                                &FileType,
-                               NameGuid,
+                               &NameGuid,
                                &FvAttributes,
                                &Size);
 
@@ -275,12 +273,12 @@ FvGetFile (
 
   // Free all allocated memory.
   FreePool (GuidAsString);
-  FreePool (NameGuid);
   FreePool (Key);
 
   // Return either the GUID of a matching file or a pointer to NULL, indicating
   // that the requested file was not found.
-  return (Found ? NameGuid : NULL);
+  CopyMem (OutputGuid, &NameGuid, sizeof (EFI_GUID));
+  return (Found ? OutputGuid : NULL);
 }
 
 UINTN
@@ -300,13 +298,12 @@ FvGetVolumeSize (
   EFI_STATUS             Status;
   VOID                   *Key;
   EFI_FV_FILETYPE        FileType;
-  EFI_GUID               *NameGuid;
+  EFI_GUID               NameGuid;
   EFI_FV_FILE_ATTRIBUTES FvAttributes;
   UINTN                  Size, TotalSize;
 
   // Loop through all FV2 files.
   TotalSize    = 0;
-  NameGuid     = AllocateZeroPool (sizeof (EFI_GUID));
   Key          = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
@@ -315,7 +312,7 @@ FvGetVolumeSize (
     Status = Fv2->GetNextFile (Fv2, 
                                Key,
                                &FileType,
-                               NameGuid,
+                               &NameGuid,
                                &FvAttributes,
                                &Size);
 
@@ -330,7 +327,6 @@ FvGetVolumeSize (
   }
 
   // Free all allocated memory.
-  FreePool (NameGuid);
   FreePool (Key);
 
   // Return the size of the volume.
