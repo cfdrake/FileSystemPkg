@@ -217,7 +217,7 @@ FvGetFile (
   IN CHAR16                        *FileName
   )
 /**
-  Gets an EFI_GUID representing a FV2 given in a stringified GUID name.
+  Gets an EFI_GUID representing an FV2 file given stringified GUID name.
 
   @param  Fv2      A pointer to the firmware volume to search.
   @param  FileName A string representing the file that the system is trying to access.
@@ -286,6 +286,13 @@ RootGetNextFile (
   IN OUT FILE_PRIVATE_DATA *PrivateFile
   )
 /**
+  Gets the EFI_GUID of the next file in the GetNextFile call chain.
+
+  @param  PrivateFile Pointer to the FILE_PRIVATE_DATA instance representing
+                      the root directory.
+
+  @retval a GUID A file was found, and the associated GUID was returned.
+  @retval NULL   End of directory listing.
 
 **/
 {
