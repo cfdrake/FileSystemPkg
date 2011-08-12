@@ -313,7 +313,7 @@ RootGetNextFile (
   // Return either the GUID of a matching file or a pointer to NULL, indicating
   // that the file was not found.
   CopyMem (OutputGuid, &NameGuid, sizeof (EFI_GUID));
-  return (Status == EFI_NOT_FOUND ? OutputGuid : NULL);
+  return (Status == EFI_NOT_FOUND ? NULL : OutputGuid);
 }
 
 UINTN
@@ -757,7 +757,7 @@ FfsRead (
   FILE_PRIVATE_DATA             *PrivateFile;
   UINT64                        ReadStart, FileSize;
   EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
-  //EFI_GUID                      *NextFileGuid;
+  EFI_GUID                      *NextFileGuid;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start of func ***\n"));
@@ -789,9 +789,9 @@ FfsRead (
     }
 
     // TODO: Grab the next file in the directory.
-    //NextFileGuid = AllocateZeroPool (sizeof(EFI_GUID));
-    //NextFileGuid = RootGetNextFile (PrivateFile);
-    //DEBUG ((EFI_D_INFO, "FOUND %g\n", NextFileGuid));
+    NextFileGuid = AllocateZeroPool (sizeof(EFI_GUID));
+    NextFileGuid = RootGetNextFile (PrivateFile);
+    DEBUG ((EFI_D_INFO, "FOUND %g\n", NextFileGuid));
 
     // Update the current position.
     PrivateFile->Position += 1;
