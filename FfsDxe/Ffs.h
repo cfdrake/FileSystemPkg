@@ -52,6 +52,8 @@ either expressed or implied, of Colin Drake.
 
 #define END_OF_FILE_POSITION 0xFFFFFFFFFFFFFFFF
 #define SIZE_OF_GUID         sizeof (CHAR16) * 37
+#define SIZE_OF_FILENAME     SIZE_OF_GUID + sizeof (CHAR16) * 4
+#define LENGTH_OF_FILENAME   40
 #define SIZE_OF_FV_LABEL     sizeof (CHAR16) * 15
 
 //

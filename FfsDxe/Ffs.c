@@ -263,7 +263,6 @@ FvGetFile (
     // string and testing with StrCmp(). If the GUID and FileName input string
     // are equal, then the requested file was found.
     UnicodeSPrint (GuidAsString, SIZE_OF_GUID, L"%g", &NameGuid);
-    DEBUG ((EFI_D_INFO, "FvGetFile: Checking GUID: %s...\n", GuidAsString));
 
     if (StrCmp (GuidAsString, FileName) == 0) {
       Found = TRUE;
@@ -414,10 +413,10 @@ GuidToFile (
 
   if (FileInfo->IsExecutable) {
     // Executable file.
-    UnicodeSPrint (PrivateFile->FileName, SIZE_OF_GUID, L"%g", NameGuid);
+    UnicodeSPrint (PrivateFile->FileName, SIZE_OF_FILENAME, L"%g.efi", NameGuid);
   } else {
     // Non-executable file.
-    UnicodeSPrint (PrivateFile->FileName, SIZE_OF_GUID, L"%g", NameGuid);
+    UnicodeSPrint (PrivateFile->FileName, SIZE_OF_FILENAME, L"%g.ffs", NameGuid);
   }
 
   return PrivateFile;
@@ -649,7 +648,7 @@ FfsOpen (
   FILE_PRIVATE_DATA        *PrivateFile, *NewPrivateFile;
   EFI_GUID                 *Guid;
   FILE_SYSTEM_PRIVATE_DATA *FileSystem;
-  CHAR16                   *CleanPath;
+  CHAR16                   *CleanPath, *StrippedFileName;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
@@ -686,21 +685,34 @@ FfsOpen (
 
     return EFI_NOT_FOUND;
   } else {
+    // Remove the extension from the file's basename.
+    StrippedFileName = AllocateZeroPool (SIZE_OF_FILENAME);
+    CopyMem (StrippedFileName, CleanPath, SIZE_OF_FILENAME);
+
+    if (StrLen (StrippedFileName) == LENGTH_OF_FILENAME) {
+      DEBUG ((EFI_D_INFO, "FfsOpen: Called on a GUID-length Filename\n"));
+      StrippedFileName[LENGTH_OF_FILENAME - 4] = '\0';
+    }
+
+    DEBUG ((EFI_D_INFO, "FfsOpen: Looking for GUID: %s\n", StrippedFileName));
+
     // Check for the filename on the FV2 volume.
-    Guid = FvGetFile (PrivateFile->FileSystem->FirmwareVolume2, FileName);
+    Guid = FvGetFile (PrivateFile->FileSystem->FirmwareVolume2, StrippedFileName);
 
     if (Guid != NULL) {
       // Found file.
       DEBUG ((EFI_D_INFO, "FfsOpen: File found\n"));
       NewPrivateFile = GuidToFile (Guid, PrivateFile->FileSystem);
 
-      // Assign the outgoing parameters
+      // Assign the outgoing parameters.
       *NewHandle = &(NewPrivateFile->File);
     } else {
       // File not found.
       DEBUG ((EFI_D_INFO, "FfsOpen: File not found\n"));
       Status = EFI_NOT_FOUND;
     }
+
+    FreePool (StrippedFileName);
   }
 
   DEBUG ((EFI_D_INFO, "FfsOpen: End of func\n"));
@@ -1040,7 +1052,7 @@ FfsGetInfo (
 
     // Determine if the size of Buffer is adequate, and if not, break so we can
     // return an error and calculate the needed size;
-    DataSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
+    DataSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_FILENAME;
 
     if (*BufferSize < DataSize) {
       // Error condition.
@@ -1056,9 +1068,9 @@ FfsGetInfo (
       FileInfo->Attribute = EFI_FILE_READ_ONLY;
 
       // Copy in file name.
-      FileName = AllocateZeroPool (SIZE_OF_GUID);
+      FileName = AllocateZeroPool (SIZE_OF_FILENAME);
       UnicodeSPrint (FileName,
-                     SIZE_OF_GUID,
+                     SIZE_OF_FILENAME,
                      L"%s",
                      PrivateFile->FileName);
       StrCpy (FileInfo->FileName, FileName);
@@ -1096,7 +1108,7 @@ FfsGetInfo (
 
     // Determine if the size of Buffer is adequate, and if not, break so we can
     // return an error and calculate the needed size;
-    DataSize = SIZE_OF_EFI_FILE_SYSTEM_INFO + SIZE_OF_GUID;
+    DataSize = SIZE_OF_EFI_FILE_SYSTEM_INFO + SIZE_OF_FILENAME;
 
     if (*BufferSize < DataSize) {
       // Error condition.
