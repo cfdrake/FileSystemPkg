@@ -76,10 +76,6 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
 // Misc. helper methods
 //
 
-UINTN
-FvGetNumberOfFiles (
-  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2
-  )
 /**
   Gets the number of files on a given EFI_FIRMWARE_VOLUME2_PROTOCOL instance.
 
@@ -88,6 +84,10 @@ FvGetNumberOfFiles (
   @retval The number of files on the volume as an integer.
 
 **/
+UINTN
+FvGetNumberOfFiles (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2
+  )
 {
   EFI_STATUS             Status;
   VOID                   *Key;
@@ -129,11 +129,6 @@ FvGetNumberOfFiles (
   return NumFiles;
 }
 
-UINTN
-FvFileGetSize (
-  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
-  IN EFI_GUID                      *FileGuid
-  )
 /**
   Gets the size of the file named by the provided GUID in FileGuid.
 
@@ -143,6 +138,11 @@ FvFileGetSize (
   @retval The size of the file in bytes.
 
 **/
+UINTN
+FvFileGetSize (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
+  IN EFI_GUID                      *FileGuid
+  )
 {
   UINTN                  BufferSize;
   UINT32                 AuthenticationStatus;
@@ -163,11 +163,6 @@ FvFileGetSize (
   return BufferSize;
 }
 
-BOOLEAN
-IsFileExecutable (
-  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
-  IN EFI_GUID                      *FileGuid
-  )
 /**
   Determines if the file identified by FileGuid is executable on the current system.
 
@@ -177,6 +172,11 @@ IsFileExecutable (
   @retval True or False if the file is executable.
 
 **/
+BOOLEAN
+IsFileExecutable (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
+  IN EFI_GUID                      *FileGuid
+  )
 {
   EFI_STATUS       Status;
   EFI_SECTION_TYPE SectionType;
@@ -211,11 +211,6 @@ IsFileExecutable (
   return EFI_IMAGE_MACHINE_TYPE_SUPPORTED (MachineType);
 }
 
-EFI_GUID *
-FvGetFile (
-  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
-  IN CHAR16                        *FileName
-  )
 /**
   Gets an EFI_GUID representing an FV2 file given stringified GUID name.
 
@@ -226,6 +221,11 @@ FvGetFile (
   @retval NULL   The file was not found.
 
 **/
+EFI_GUID *
+FvGetFile (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
+  IN CHAR16                        *FileName
+  )
 {
   EFI_STATUS             Status;
   BOOLEAN                Found;
@@ -280,10 +280,6 @@ FvGetFile (
   return (Found ? OutputGuid : NULL);
 }
 
-EFI_GUID *
-RootGetNextFile (
-  IN OUT FILE_PRIVATE_DATA *PrivateFile
-  )
 /**
   Gets the EFI_GUID of the next file in the GetNextFile call chain.
 
@@ -294,6 +290,10 @@ RootGetNextFile (
   @retval NULL   End of directory listing.
 
 **/
+EFI_GUID *
+RootGetNextFile (
+  IN OUT FILE_PRIVATE_DATA *PrivateFile
+  )
 {
   EFI_STATUS                    Status;
   EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
@@ -322,10 +322,6 @@ RootGetNextFile (
   return (Status == EFI_NOT_FOUND ? NULL : OutputGuid);
 }
 
-UINTN
-FvGetVolumeSize (
-  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2
-  )
 /**
   Sums the file sizes of all files in a firmware volume to find the total size
   of the volume.
@@ -335,6 +331,10 @@ FvGetVolumeSize (
   @retval The sum of all of the file sizes on a given volume.
 
 **/
+UINTN
+FvGetVolumeSize (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2
+  )
 {
   EFI_STATUS             Status;
   VOID                   *Key;
@@ -374,11 +374,6 @@ FvGetVolumeSize (
   return TotalSize;
 }
 
-FILE_PRIVATE_DATA *
-GuidToFile (
-  IN EFI_GUID                 *NameGuid,
-  IN FILE_SYSTEM_PRIVATE_DATA *FileSystem
-  )
 /**
   Returns a FILE_PRIVATE_DATA instance for a GUID.
 
@@ -389,6 +384,11 @@ GuidToFile (
   @retval FILE_PRIVATE_DATA instance representing Fv2 file named by NameGuid.
 
 **/
+FILE_PRIVATE_DATA *
+GuidToFile (
+  IN EFI_GUID                 *NameGuid,
+  IN FILE_SYSTEM_PRIVATE_DATA *FileSystem
+  )
 {
   FILE_INFO *FileInfo;
   FILE_PRIVATE_DATA *PrivateFile;
@@ -422,11 +422,6 @@ GuidToFile (
   return PrivateFile;
 }
 
-BOOLEAN
-EFIAPI
-PathRemoveLastItem(
-  IN OUT CHAR16 *Path
-  )
 /**
   Removes the last directory or file entry in a path by changing the last
   L'\' to a CHAR_NULL.
@@ -436,6 +431,11 @@ PathRemoveLastItem(
   @retval FALSE     Nothing was found to remove.
   @retval TRUE      A directory or file was removed.
 **/
+BOOLEAN
+EFIAPI
+PathRemoveLastItem(
+  IN OUT CHAR16 *Path
+  )
 {
   CHAR16        *Walker;
   CHAR16        *LastSlash;
@@ -457,11 +457,6 @@ PathRemoveLastItem(
   return (FALSE);
 }
 
-CHAR16*
-EFIAPI
-PathCleanUpDirectories(
-  IN CHAR16 *Path
-  )
 /**
   Function to clean up paths.  
   
@@ -477,6 +472,11 @@ PathCleanUpDirectories(
   @retval NULL          An error occured.
   @return Path in all other instances.
 **/
+CHAR16*
+EFIAPI
+PathCleanUpDirectories(
+  IN CHAR16 *Path
+  )
 {
   CHAR16  *TempString;
   UINTN   TempSize;
@@ -528,12 +528,6 @@ PathCleanUpDirectories(
 // SimpleFileSystem and File protocol functions
 //
 
-EFI_STATUS
-EFIAPI
-FfsOpenVolume (
-  IN EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *This,
-  OUT EFI_FILE_PROTOCOL               **Root
-  )
 /**
   Open the root directory on a volume.
 
@@ -554,6 +548,12 @@ FfsOpenVolume (
                                volume must be reopened with OpenVolume().
 
 **/
+EFI_STATUS
+EFIAPI
+FfsOpenVolume (
+  IN EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *This,
+  OUT EFI_FILE_PROTOCOL               **Root
+  )
 {
   EFI_STATUS               Status;
   FILE_SYSTEM_PRIVATE_DATA *PrivateFileSystem;
@@ -604,15 +604,6 @@ FfsOpenVolume (
   return Status;
 }
 
-EFI_STATUS
-EFIAPI
-FfsOpen (
-  IN  EFI_FILE_PROTOCOL *This,
-  OUT EFI_FILE_PROTOCOL **NewHandle,
-  IN  CHAR16            *FileName,
-  IN  UINT64            OpenMode,
-  IN  UINT64            Attributes
-  )
 /**
   Opens a new file relative to the source file's location.
 
@@ -643,6 +634,15 @@ FfsOpen (
   @retval EFI_VOLUME_FULL      The volume is full.
 
 **/
+EFI_STATUS
+EFIAPI
+FfsOpen (
+  IN  EFI_FILE_PROTOCOL *This,
+  OUT EFI_FILE_PROTOCOL **NewHandle,
+  IN  CHAR16            *FileName,
+  IN  UINT64            OpenMode,
+  IN  UINT64            Attributes
+  )
 {
   EFI_STATUS               Status;
   FILE_PRIVATE_DATA        *PrivateFile, *NewPrivateFile;
@@ -719,9 +719,6 @@ FfsOpen (
   return Status;
 }
 
-EFI_STATUS
-EFIAPI
-FfsClose (IN EFI_FILE_PROTOCOL *This)
 /**
   Closes a specified file handle.
 
@@ -731,6 +728,9 @@ FfsClose (IN EFI_FILE_PROTOCOL *This)
   @retval EFI_SUCCESS   The file was closed.
 
 **/
+EFI_STATUS
+EFIAPI
+FfsClose (IN EFI_FILE_PROTOCOL *This)
 {
   FILE_PRIVATE_DATA *PrivateFile;
 
@@ -752,9 +752,6 @@ FfsClose (IN EFI_FILE_PROTOCOL *This)
   return EFI_SUCCESS;
 }
 
-EFI_STATUS
-EFIAPI
-FfsDelete (IN EFI_FILE_PROTOCOL *This)
 /**
   Close and delete the file handle.
 
@@ -765,18 +762,14 @@ FfsDelete (IN EFI_FILE_PROTOCOL *This)
   @retval EFI_WARN_DELETE_FAILURE  The handle was closed, but the file was not deleted.
 
 **/
+EFI_STATUS
+EFIAPI
+FfsDelete (IN EFI_FILE_PROTOCOL *This)
 {
   DEBUG ((EFI_D_INFO, "*** FfsDelete: Unsupported ***\n"));
   return EFI_UNSUPPORTED;
 }
 
-EFI_STATUS
-EFIAPI
-FfsRead (
-  IN EFI_FILE_PROTOCOL *This,
-  IN OUT UINTN *BufferSize,
-  OUT VOID *Buffer
-  )
 /**
   Reads data from a file.
 
@@ -797,6 +790,13 @@ FfsRead (
                                needed to complete the request.
 
 **/
+EFI_STATUS
+EFIAPI
+FfsRead (
+  IN EFI_FILE_PROTOCOL *This,
+  IN OUT UINTN *BufferSize,
+  OUT VOID *Buffer
+  )
 {
   EFI_STATUS                    Status;
   FILE_PRIVATE_DATA             *PrivateFile, *NextFile;
@@ -880,13 +880,6 @@ FfsRead (
   return Status;
 }
 
-EFI_STATUS
-EFIAPI
-FfsWrite (
-  IN EFI_FILE_PROTOCOL *This,
-  IN OUT UINTN *BufferSize,
-  IN VOID *Buffer
-  )
 /**
   Writes data to a file.
 
@@ -907,17 +900,18 @@ FfsWrite (
   @retval EFI_VOLUME_FULL      The volume is full.
 
 **/
+EFI_STATUS
+EFIAPI
+FfsWrite (
+  IN EFI_FILE_PROTOCOL *This,
+  IN OUT UINTN *BufferSize,
+  IN VOID *Buffer
+  )
 {
   DEBUG ((EFI_D_INFO, "*** FfsWrite: Unsupported ***\n"));
   return EFI_ACCESS_DENIED;
 }
 
-EFI_STATUS
-EFIAPI
-FfsGetPosition (
-  IN EFI_FILE_PROTOCOL *This,
-  OUT UINT64 *Position
-  )
 /**
   Returns a file's current position.
 
@@ -930,6 +924,12 @@ FfsGetPosition (
   @retval EFI_DEVICE_ERROR An attempt was made to get the position from a deleted file.
 
 **/
+EFI_STATUS
+EFIAPI
+FfsGetPosition (
+  IN EFI_FILE_PROTOCOL *This,
+  OUT UINT64 *Position
+  )
 {
   FILE_PRIVATE_DATA *PrivateFile;
 
@@ -950,12 +950,6 @@ FfsGetPosition (
   return EFI_SUCCESS;
 }
 
-EFI_STATUS
-EFIAPI
-FfsSetPosition (
-  IN EFI_FILE_PROTOCOL *This,
-  IN UINT64 Position
-  )
 /**
   Sets a file's current position.
 
@@ -969,6 +963,12 @@ FfsSetPosition (
   @retval EFI_DEVICE_ERROR An attempt was made to set the position of a deleted file.
 
 **/
+EFI_STATUS
+EFIAPI
+FfsSetPosition (
+  IN EFI_FILE_PROTOCOL *This,
+  IN UINT64 Position
+  )
 {
   FILE_PRIVATE_DATA *PrivateFile;
 
@@ -1004,14 +1004,6 @@ FfsSetPosition (
   return EFI_SUCCESS;
 }
 
-EFI_STATUS
-EFIAPI
-FfsGetInfo (
-  IN EFI_FILE_PROTOCOL *This,
-  IN EFI_GUID *InformationType,
-  IN OUT UINTN *BufferSize,
-  OUT VOID *Buffer
-  )
 /**
   Returns information about a file.
 
@@ -1032,6 +1024,14 @@ FfsGetInfo (
                                BufferSize has been updated with the size needed to complete
                                the request.
 **/
+EFI_STATUS
+EFIAPI
+FfsGetInfo (
+  IN EFI_FILE_PROTOCOL *This,
+  IN EFI_GUID *InformationType,
+  IN OUT UINTN *BufferSize,
+  OUT VOID *Buffer
+  )
 {
   EFI_STATUS           Status;
   EFI_FILE_INFO        *FileInfo;
@@ -1148,14 +1148,6 @@ FfsGetInfo (
   return Status;
 }
 
-EFI_STATUS
-EFIAPI
-FfsSetInfo (
-  IN EFI_FILE_PROTOCOL *This,
-  IN EFI_GUID *InformationType,
-  IN UINTN BufferSize,
-  IN VOID *Buffer
-  )
 /**
   Sets information about a file.
 
@@ -1190,6 +1182,14 @@ FfsSetInfo (
                                by InformationType.
 
 **/
+EFI_STATUS
+EFIAPI
+FfsSetInfo (
+  IN EFI_FILE_PROTOCOL *This,
+  IN EFI_GUID *InformationType,
+  IN UINTN BufferSize,
+  IN VOID *Buffer
+  )
 {
   DEBUG ((EFI_D_INFO, "*** FfsSetInfo: Unsupported ***\n"));
   return EFI_WRITE_PROTECTED;
@@ -1222,12 +1222,6 @@ FfsFlush (IN EFI_FILE_PROTOCOL *This)
 // Global functions
 //
 
-VOID
-EFIAPI
-FfsNotificationEvent (
-  IN EFI_EVENT Event,
-  IN VOID      *Context
-  )
 /**
 
   Callback function, notified when new FV2 volumes are mounted in the system.
@@ -1238,6 +1232,12 @@ FfsNotificationEvent (
   @param Context The context in which this function was called.
 
 **/
+VOID
+EFIAPI
+FfsNotificationEvent (
+  IN EFI_EVENT Event,
+  IN VOID      *Context
+  )
 {
   UINTN                           BufferSize;
   EFI_STATUS                      Status;
@@ -1307,12 +1307,6 @@ FfsNotificationEvent (
   }
 }
 
-EFI_STATUS
-EFIAPI
-InitializeFfsFileSystem (
-  IN EFI_HANDLE       ImageHandle,
-  IN EFI_SYSTEM_TABLE *SystemTable
-  )
 /**
 
   Entry point for the driver.
@@ -1323,6 +1317,12 @@ InitializeFfsFileSystem (
   @param SystemTable A Pointer to the EFI System Table.
 
 **/
+EFI_STATUS
+EFIAPI
+InitializeFfsFileSystem (
+  IN EFI_HANDLE       ImageHandle,
+  IN EFI_SYSTEM_TABLE *SystemTable
+  )
 {
   EfiCreateProtocolNotifyEvent (
     &gEfiFirmwareVolume2ProtocolGuid,
