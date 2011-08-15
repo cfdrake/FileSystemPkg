@@ -79,9 +79,9 @@ FILE_PRIVATE_DATA mFilePrivateDataTemplate = {
 /**
   Gets the number of files on a given EFI_FIRMWARE_VOLUME2_PROTOCOL instance.
 
-  @param  Fv2      A pointer to the firmware volume to search.
+  @param[in] Fv2 A pointer to the firmware volume to search.
 
-  @retval The number of files on the volume as an integer.
+  @return The number of files on the volume as an integer.
 
 **/
 UINTN
@@ -96,36 +96,38 @@ FvGetNumberOfFiles (
   EFI_FV_FILE_ATTRIBUTES FvAttributes;
   UINTN                  Size, NumFiles;
 
-  // Loop through all FV2 files.
-  NumFiles     = 0;
-  Key          = AllocateZeroPool (Fv2->KeySize);
+  NumFiles = 0;
+  Key      = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
+    //
     // Grab the next file in the Fv2 volume.
+    //
     FileType = EFI_FV_FILETYPE_ALL;
-    Status = Fv2->GetNextFile (Fv2, 
-                               Key,
-                               &FileType,
-                               &NameGuid,
-                               &FvAttributes,
-                               &Size);
+    Status = Fv2->GetNextFile (
+                    Fv2, 
+                    Key,
+                    &FileType,
+                    &NameGuid,
+                    &FvAttributes,
+                    &Size);
 
+    //
     // Check exit condition. If Status is an error status, then the list of
     // files tried has been exhausted. Break from the loop and return NULL.
+    //
     if (Status == EFI_NOT_FOUND) {
       break;
     }
     
-    // Update number of files.
     NumFiles++;
   }
 
-  // Free all allocated memory.
-  FreePool (Key);
-
+  //
+  // Free all allocated memory and return number of files on the volume.
+  //
   DEBUG ((EFI_D_INFO, "FvGetNumberOfFiles: Directory has %d files\n", NumFiles));
-
-  // Return number of files on the volume.
+  FreePool (Key);
   return NumFiles;
 }
 
@@ -149,17 +151,19 @@ FvFileGetSize (
   EFI_FV_FILETYPE        FoundType;
   EFI_FV_FILE_ATTRIBUTES FileAttributes;
 
+  //
   // When ReadFile is called with Buffer == NULL, the value returned in 
   // BufferSize will be the size of the file.
-  Fv2->ReadFile (Fv2,
-                 FileGuid,
-                 NULL,
-                 &BufferSize,
-                 &FoundType,
-                 &FileAttributes,
-                 &AuthenticationStatus);
+  //
+  Fv2->ReadFile (
+         Fv2,
+         FileGuid,
+         NULL,
+         &BufferSize,
+         &FoundType,
+         &FileAttributes,
+         &AuthenticationStatus);
 
-  // Return the file size.
   return BufferSize;
 }
 
@@ -185,14 +189,16 @@ IsFileExecutable (
                    BufferSize,
                    SectionInstance;
   UINT32           AuthenticationStatus;
+  BOOLEAN          Executable;
 
-  // Initialize local variables.
-  SectionType = EFI_SECTION_PE32;
-  Buffer = NULL;
+  SectionType     = EFI_SECTION_PE32;
+  Buffer          = NULL;
   SectionInstance = 0;
-  BufferSize = 0;
+  BufferSize      = 0;
 
+  //
   // Read the executable section of the file passed in.
+  //
   Status = Fv2->ReadSection (Fv2,
                              FileGuid,
                              SectionType,
@@ -201,14 +207,20 @@ IsFileExecutable (
                              &BufferSize,
                              &AuthenticationStatus);
 
+  //
   // Return FALSE if there's an error reading the executable section.
+  //
   if (EFI_ERROR (Status)) {
-    return FALSE;
+    Executable = FALSE;
+  } else {
+    //
+    // Determine and return if the machine type is supported or not.
+    //
+    MachineType = PeCoffLoaderGetMachineType (Buffer);
+    Executable  = EFI_IMAGE_MACHINE_TYPE_SUPPORTED (MachineType);
   }
 
-  // Determine and return if the machine type is supported or not.
-  MachineType = PeCoffLoaderGetMachineType (Buffer);
-  return EFI_IMAGE_MACHINE_TYPE_SUPPORTED (MachineType);
+  return Executable;
 }
 
 /**
@@ -243,25 +255,32 @@ FvGetFile (
   Key          = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
+    //
     // Grab the next file in the Fv2 volume.
+    //
     FileType = EFI_FV_FILETYPE_ALL;
-    Status = Fv2->GetNextFile (Fv2, 
-                               Key,
-                               &FileType,
-                               &NameGuid,
-                               &FvAttributes,
-                               &Size);
+    Status = Fv2->GetNextFile (
+                    Fv2, 
+                    Key,
+                    &FileType,
+                    &NameGuid,
+                    &FvAttributes,
+                    &Size);
 
+    //
     // Check exit condition. If Status is an error status, then the list of
     // files tried has been exhausted. Break from the loop and return NULL.
+    //
     if (Status == EFI_NOT_FOUND) {
       DEBUG ((EFI_D_INFO, "FvGetFile: At last file or ERROR found...\n"));
       break;
     }
 
+    //
     // Check for the file we're looking for by converting the found GUID to a
     // string and testing with StrCmp(). If the GUID and FileName input string
     // are equal, then the requested file was found.
+    //
     UnicodeSPrint (GuidAsString, SIZE_OF_GUID, L"%g", &NameGuid);
 
     if (StrCmp (GuidAsString, FileName) == 0) {
@@ -270,12 +289,16 @@ FvGetFile (
     }
   }
 
+  //
   // Free all allocated memory.
+  //
   FreePool (GuidAsString);
   FreePool (Key);
 
+  //
   // Return either the GUID of a matching file or a pointer to NULL, indicating
   // that the requested file was not found.
+  //
   CopyMem (OutputGuid, &NameGuid, sizeof (EFI_GUID));
   return (Found ? OutputGuid : NULL);
 }
@@ -305,19 +328,24 @@ RootGetNextFile (
   Fv2        = PrivateFile->FileSystem->FirmwareVolume2;
   OutputGuid = AllocateZeroPool (sizeof (EFI_GUID));
 
+  //
   // Grab the next file in the Fv2 volume. The Key parameter in this function
   // is preserved and set into PrivateFile->DirInfo->Key, so in the next call
   // of this function, the next file will be found.
+  //
   FileType = EFI_FV_FILETYPE_ALL;
-  Status = Fv2->GetNextFile (Fv2,
-                             PrivateFile->DirInfo->Key,
-                             &FileType,
-                             &NameGuid,
-                             &FvAttributes,
-                             &Size);
+  Status = Fv2->GetNextFile (
+                  Fv2,
+                  PrivateFile->DirInfo->Key,
+                  &FileType,
+                  &NameGuid,
+                  &FvAttributes,
+                  &Size);
 
+  //
   // Return either the GUID of a matching file or a pointer to NULL, indicating
   // that the file was not found.
+  //
   CopyMem (OutputGuid, &NameGuid, sizeof (EFI_GUID));
   return (Status == EFI_NOT_FOUND ? NULL : OutputGuid);
 }
@@ -343,34 +371,37 @@ FvGetVolumeSize (
   EFI_FV_FILE_ATTRIBUTES FvAttributes;
   UINTN                  Size, TotalSize;
 
-  // Loop through all FV2 files.
   TotalSize    = 0;
   Key          = AllocateZeroPool (Fv2->KeySize);
 
   while (TRUE) {
+    //
     // Grab the next file in the Fv2 volume.
+    //
     FileType = EFI_FV_FILETYPE_ALL;
-    Status = Fv2->GetNextFile (Fv2, 
-                               Key,
-                               &FileType,
-                               &NameGuid,
-                               &FvAttributes,
-                               &Size);
+    Status = Fv2->GetNextFile (
+                    Fv2, 
+                    Key,
+                    &FileType,
+                    &NameGuid,
+                    &FvAttributes,
+                    &Size);
 
-    // Update the sum of file sizes.
     TotalSize += Size;
 
+    //
     // Check exit condition. If Status is an error status, then the list of
-    // files tried has been exhausted. Break from the loop and return NULL.
+    // files tried has been exhausted. Break from the loop.
+    //
     if (Status == EFI_NOT_FOUND) {
       break;
     }
   }
 
-  // Free all allocated memory.
+  //
+  // Free all allocated memory and return the Fv2's total size.
+  //
   FreePool (Key);
-
-  // Return the size of the volume.
   return TotalSize;
 }
 
@@ -393,29 +424,30 @@ GuidToFile (
   FILE_INFO *FileInfo;
   FILE_PRIVATE_DATA *PrivateFile;
 
-  // Allocate new file and file info instances.
-  PrivateFile = AllocateCopyPool (sizeof (FILE_PRIVATE_DATA),
-                                  &mFilePrivateDataTemplate);
+  //
+  // Allocate new file and file info instances and fill them out.
+  //
+  PrivateFile = AllocateCopyPool (
+                  sizeof (FILE_PRIVATE_DATA),
+                  &mFilePrivateDataTemplate);
   FileInfo    = AllocateZeroPool (sizeof (FILE_INFO));
 
-  // Allocate a file info instance for this file.
   PrivateFile->DirInfo    = NULL;
   PrivateFile->FileInfo   = FileInfo;
   PrivateFile->FileSystem = FileSystem;
   FileInfo->NameGuid      = *NameGuid;
-  FileInfo->IsExecutable  = IsFileExecutable(PrivateFile->
-                                               FileSystem->
-                                               FirmwareVolume2,
-                                             NameGuid);
+  FileInfo->IsExecutable  = IsFileExecutable(
+                              PrivateFile->FileSystem->FirmwareVolume2,
+                              NameGuid);
 
+  //
   // Generate filename.
+  //
   PrivateFile->FileName = AllocateZeroPool (SIZE_OF_GUID);
 
   if (FileInfo->IsExecutable) {
-    // Executable file.
     UnicodeSPrint (PrivateFile->FileName, SIZE_OF_FILENAME, L"%g.efi", NameGuid);
   } else {
-    // Non-executable file.
     UnicodeSPrint (PrivateFile->FileName, SIZE_OF_FILENAME, L"%g.ffs", NameGuid);
   }
 
