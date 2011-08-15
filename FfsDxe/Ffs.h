@@ -32,6 +32,9 @@ either expressed or implied, of Colin Drake.
 #ifndef _FFS_H_
 #define _FFS_H_
 
+///
+/// Required file includes.
+///
 #include <PiDxe.h>
 #include <Guid/FileInfo.h>
 #include <Guid/FileSystemInfo.h>
@@ -50,6 +53,9 @@ either expressed or implied, of Colin Drake.
 #include <Library/MemoryAllocationLib.h>
 #include <Uefi/UefiBaseType.h>
 
+//
+// Miscellaneous helpful macros.
+//
 #define END_OF_FILE_POSITION (0xFFFFFFFFFFFFFFFF)
 #define SIZE_OF_GUID         (sizeof (CHAR16) * 37)
 #define SIZE_OF_FILENAME     (SIZE_OF_GUID + sizeof (CHAR16) * 4)
@@ -57,62 +63,87 @@ either expressed or implied, of Colin Drake.
 #define SIZE_OF_FV_LABEL     (sizeof (CHAR16) * 15)
 
 //
-// Typedefs
+// Forward-declared typedefs for later data structures.
 //
-
 typedef struct _FILE_SYSTEM_PRIVATE_DATA FILE_SYSTEM_PRIVATE_DATA;
-typedef struct _FILE_PRIVATE_DATA FILE_PRIVATE_DATA;
-typedef struct _DIR_INFO DIR_INFO;
-typedef struct _FILE_INFO FILE_INFO;
+typedef struct _FILE_PRIVATE_DATA        FILE_PRIVATE_DATA;
+typedef struct _DIR_INFO                 DIR_INFO;
+typedef struct _FILE_INFO                FILE_INFO;
 
-//
-// Private data structure for File System
-//
+///
+/// Signature to identify FILE_SYSTEM_PRIVATE_DATA instances.
+///
+#define FILE_SYSTEM_PRIVATE_DATA_SIGNATURE (SIGNATURE_32 ('f', 'f', 's', 't'))
 
-#define FILE_SYSTEM_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 't')
-
+///
+/// Private data structure for filesystem instances. For each mounted
+/// EFI_SIMPLE_FILE_SYSTEM_PROTOCOL instance in the filesystem, there will be
+/// one corresponding FILE_SYSTEM_PRIVATE_DATA instance to hold associated data.
+///
 struct _FILE_SYSTEM_PRIVATE_DATA {
-  UINT32                          Signature;
+  UINT32                          Signature;        ///< Datatype signature.
 
-  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL SimpleFileSystem;
-  EFI_FIRMWARE_VOLUME2_PROTOCOL   *FirmwareVolume2;
-  FILE_PRIVATE_DATA               *Root;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL SimpleFileSystem; ///< Holds the SFS interface.
+  EFI_FIRMWARE_VOLUME2_PROTOCOL   *FirmwareVolume2; ///< Pointer to the filesystem's FV2 instance.
+  FILE_PRIVATE_DATA               *Root;            ///< Pointer to the root directory of the filesystem.
 };
 
+///
+/// Macro to grab the FILE_SYSTEM_PRIVATE_DATA instance associated with a given
+/// pointer to an EFI_SIMPLE_FILE_SYSTEM_PROTOCOL.
+///
 #define FILE_SYSTEM_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_SYSTEM_PRIVATE_DATA, SimpleFileSystem, FILE_SYSTEM_PRIVATE_DATA_SIGNATURE)
 
-//
-// Private data structure for File
-//
+///
+/// Signature to identify FILE_PRIVATE_DATA instances.
+///
+#define FILE_PRIVATE_DATA_SIGNATURE (SIGNATURE_32 ('f', 'f', 's', 'f'))
 
-#define FILE_PRIVATE_DATA_SIGNATURE SIGNATURE_32 ('f', 'f', 's', 'f')
-
+///
+/// Private data structure for file instances. For each EFI_FILE_PROTOCOL instance
+/// created in the filesystem, there will be one corresponding FILE_PRIVATE_DATA
+/// instance to hold associated data.
+///
 struct _FILE_PRIVATE_DATA {
-  UINT32                   Signature;
+  UINT32                   Signature;   ///< Datatype signature.
 
-  EFI_FILE_PROTOCOL        File;
-  FILE_SYSTEM_PRIVATE_DATA *FileSystem;
+  EFI_FILE_PROTOCOL        File;        ///< Holds the EFI_FILE_PROTOCOL interface.
+  FILE_SYSTEM_PRIVATE_DATA *FileSystem; ///< Pointer to the file's filesystem instance.
 
-  CHAR16                   *FileName;
+  CHAR16                   *FileName;   ///< String name used to reference the file.
 
-  BOOLEAN                  IsDirectory;
-  DIR_INFO                 *DirInfo;
-  FILE_INFO                *FileInfo;
+  BOOLEAN                  IsDirectory; ///< Determines if the file is a directory or not.
+  DIR_INFO                 *DirInfo;    ///< Associated information for directories.
+  FILE_INFO                *FileInfo;   ///< Associated information for files.
 
-  UINT64                   Position;
+  UINT64                   Position;    ///< Number of bytes to offset calls to Read() by.
 };
 
-struct _DIR_INFO {
-  LIST_ENTRY Children;
-  VOID       *Key;
-};
-
-struct _FILE_INFO {
-  BOOLEAN  IsExecutable;
-  EFI_GUID NameGuid;
-};
-
+///
+/// Macro to grab the FILE_PRIVATE_DATA instance associated with a given
+/// pointer to an EFI_FILE_PROTOCOL.
+///
 #define FILE_PRIVATE_DATA_FROM_THIS(a) CR (a, FILE_PRIVATE_DATA, File, FILE_PRIVATE_DATA_SIGNATURE)
+
+///
+/// Directory information datatype. This data structure has members that give
+/// more specific information about FILE_PRIVATE_DATA instances that are
+/// directories rather than files.
+///
+struct _DIR_INFO {
+  LIST_ENTRY Children; ///< List of children files in this directory.
+  VOID       *Key;     ///< Search key to keep track of directory index position.
+};
+
+///
+/// File information datatype. This data structure has members that give more
+/// specific information about FILE_PRIVATE_DATA instances that are files rather
+/// than directories.
+///
+struct _FILE_INFO {
+  BOOLEAN  IsExecutable; ///< Determines if the file has an executable section or not.
+  EFI_GUID NameGuid;     ///< The EFI_GUID that represents the file in it's FV2 instance.
+};
 
 //
 // SimpleFileSystem and File protocol functions
