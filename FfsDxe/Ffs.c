@@ -594,10 +594,14 @@ FfsOpenVolume (
   
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: Start\n"));
 
+  //
   // Get private structure for This.
+  //
   PrivateFileSystem = FILE_SYSTEM_PRIVATE_DATA_FROM_THIS (This);
 
+  //
   // Allocate a new private FILE_PRIVATE_DATA instance.
+  //
   PrivateFile = NULL;
   PrivateFile = AllocateCopyPool (
                   sizeof (FILE_PRIVATE_DATA),
@@ -611,8 +615,10 @@ FfsOpenVolume (
 
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: Allocate private file struct\n"));
 
+  //
   // Fill out the rest of the private file data and assign it's File attribute
   // to Root.
+  //
   PrivateFile->FileSystem  = PrivateFileSystem;
   PrivateFile->FileName    = L"\\";
   PrivateFile->IsDirectory = TRUE;
@@ -626,8 +632,10 @@ FfsOpenVolume (
   PrivateFile->DirInfo     = RootInfo;
   PrivateFile->Position    = 0;
 
+  //
   // Set the root folder of the file system and the outgoing paramater Root,
   // and set the status code to return to EFI_SUCCESS.
+  //
   PrivateFileSystem->Root = PrivateFile;
   *Root = &(PrivateFile->File);
   Status = EFI_SUCCESS;
@@ -685,9 +693,11 @@ FfsOpen (
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
 
+  //
   // Check for a valid OpenMode parameter. Since this is a read-only filesystem
   // it must not be EFI_FILE_MODE_WRITE or EFI_FILE_MODE_CREATE. Additionally,
   // ensure that the file name to be accessed isn't empty.
+  //
   if ((OpenMode & (EFI_FILE_MODE_READ | EFI_FILE_MODE_CREATE)) != EFI_FILE_MODE_READ) {
     DEBUG ((EFI_D_INFO, "FfsOpen: OpenMode must be Read\n"));
     return EFI_WRITE_PROTECTED;
@@ -701,10 +711,14 @@ FfsOpen (
   CleanPath = PathCleanUpDirectories (FileName);
   DEBUG ((EFI_D_INFO, "FfsOpen: Path reconstructed as: %s\n", CleanPath));
 
+  //
   // Check the filename that was specified to open.
+  //
   if (StrCmp (CleanPath, L"\\") == 0 ||
              (StrCmp (CleanPath, L".") == 0 && PrivateFile->IsDirectory)) {
+    //
     // Open the root directory.
+    //
     DEBUG ((EFI_D_INFO, "FfsOpen: Open root\n"));
 
     FileSystem = PrivateFile->FileSystem;
@@ -712,12 +726,16 @@ FfsOpen (
 
     return Status;
   } else if (StrCmp (CleanPath, L"..") == 0) {
-    // Open the parent directory.
+    //
+    // Open the parent directory. This is invalid on the filesystem.
+    //
     DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
 
     return EFI_NOT_FOUND;
   } else {
-    // Remove the extension from the file's basename.
+    //
+    // Requested a file. Remove the extension from the file's basename.
+    //
     StrippedFileName = AllocateZeroPool (SIZE_OF_FILENAME);
     CopyMem (StrippedFileName, CleanPath, SIZE_OF_FILENAME);
 
@@ -728,18 +746,22 @@ FfsOpen (
 
     DEBUG ((EFI_D_INFO, "FfsOpen: Looking for GUID: %s\n", StrippedFileName));
 
+    //
     // Check for the filename on the FV2 volume.
+    //
     Guid = FvGetFile (PrivateFile->FileSystem->FirmwareVolume2, StrippedFileName);
 
     if (Guid != NULL) {
+      //
       // Found file.
+      //
       DEBUG ((EFI_D_INFO, "FfsOpen: File found\n"));
       NewPrivateFile = GuidToFile (Guid, PrivateFile->FileSystem);
-
-      // Assign the outgoing parameters.
       *NewHandle = &(NewPrivateFile->File);
     } else {
+      //
       // File not found.
+      //
       DEBUG ((EFI_D_INFO, "FfsOpen: File not found\n"));
       Status = EFI_NOT_FOUND;
     }
@@ -768,10 +790,14 @@ FfsClose (IN EFI_FILE_PROTOCOL *This)
 
   DEBUG ((EFI_D_INFO, "*** FfsClose: Start of func ***\n"));
 
+  //
   // Grab the associated private data.
+  //
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
 
+  //
   // Free up all of the private data.
+  //
   /*if (PrivateFile->IsDirectory) {
     FreePool (PrivateFile->DirInfo);
   } else {
@@ -839,7 +865,9 @@ FfsRead (
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start of func ***\n"));
 
+  //
   // Grab private data and determine the starting location to read from.
+  //
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
   Fv2         = PrivateFile->FileSystem->FirmwareVolume2;
   ReadStart   = PrivateFile->Position;
@@ -848,63 +876,80 @@ FfsRead (
 
   // Check filetype.
   if (PrivateFile->IsDirectory) {
-    // Called on a Directory.
     DEBUG ((EFI_D_INFO, "*** FfsRead: Called on directory ***\n"));
 
+    //
     // Ensure that Buffer is large enough to hold the EFI_FILE_INFO struct.
+    //
     if (*BufferSize < SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID) {
       DEBUG ((EFI_D_INFO, "*** FfsRead: Need a larger buffer\n"));
       *BufferSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
       return EFI_BUFFER_TOO_SMALL;
     }
 
+    //
     // Ensure we're not at the end of the directory.
+    //
     if (FvGetNumberOfFiles(PrivateFile->FileSystem->FirmwareVolume2) <= ReadStart) {
       DEBUG ((EFI_D_INFO, "*** FfsRead: At end of directory listing\n"));
       *BufferSize = 0;
       return EFI_SUCCESS;
     }
 
-    // Grab the next file in the directory.
+    //
+    // Grab the next file in the directory and get its EFI_FILE_INFO.
+    //
     NextFileGuid = AllocateZeroPool (sizeof(EFI_GUID));
     NextFileGuid = RootGetNextFile (PrivateFile);
+    NextFile     = GuidToFile (NextFileGuid, PrivateFile->FileSystem);
 
-    DEBUG ((EFI_D_INFO, "FOUND %g\n", NextFileGuid));
+    NextFile->File.GetInfo (
+                     &(NextFile->File),
+                     &gEfiFileInfoGuid,
+                     BufferSize,
+                     Buffer);
 
-    NextFile = GuidToFile (NextFileGuid, PrivateFile->FileSystem);
-    NextFile->File.GetInfo (&(NextFile->File),
-                            &gEfiFileInfoGuid,
-                            BufferSize,
-                            Buffer);
-
-    // Update the current position.
+    //
+    // Update the current position to the next directory entry.
+    //
     PrivateFile->Position += 1;
   } else {
-    // Called on a File.
     DEBUG ((EFI_D_INFO, "*** FfsRead: Called on file ***\n"));
 
+    //
     // Determine how many bytes we will actually read. If the read request is
     // going to go out of bounds, change it to read only to the EOF.
-    FileSize = FvFileGetSize (PrivateFile->FileSystem->FirmwareVolume2,
-                              &(PrivateFile->FileInfo->NameGuid));
+    //
+    FileSize = FvFileGetSize (
+                 PrivateFile->FileSystem->FirmwareVolume2,
+                 &(PrivateFile->FileInfo->NameGuid));
 
+    //
+    // Cap off the amount of data read so we don't go past the EOF.
+    //
     if (ReadStart + *BufferSize > FileSize) {
-      // Cap off the amount of data read so we don't go past the EOF.
       *BufferSize = FileSize - ReadStart;
     }
 
     // Read the data.
-    if (IsFileExecutable (PrivateFile->FileSystem->FirmwareVolume2,
-                          &(PrivateFile->FileInfo->NameGuid))) {
-      // Read executable section. 
+    if (IsFileExecutable (
+          PrivateFile->FileSystem->FirmwareVolume2,
+          &(PrivateFile->FileInfo->NameGuid))) {
+      //
+      // Read executable section.
+      //       
       // Fv2->ReadSection (..);
     } else {
+      //
       // Read from whole file.
+      //
       // Fv2->ReadFile (..);
     }
 
+    //
     // Update the file's position to be the original location added to the
     // number of bytes read.
+    //
     PrivateFile->Position = ReadStart + *BufferSize;
   }
 
@@ -967,18 +1012,20 @@ FfsGetPosition (
 
   DEBUG ((EFI_D_INFO, "*** FfsGetPosition: Start of func ***\n"));
 
+  //
   // Grab the private data associated with This.
+  //
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
 
+  //
   // Ensure that this function is not called on a directory.
+  //
   if (PrivateFile->IsDirectory) {
     return EFI_UNSUPPORTED;
   }
 
-  // Grab the current file position.
-  *Position = PrivateFile->Position;
-
   DEBUG ((EFI_D_INFO, "*** FfsGetPosition: End of func ***\n"));
+  *Position = PrivateFile->Position;
   return EFI_SUCCESS;
 }
 
@@ -1006,29 +1053,39 @@ FfsSetPosition (
 
   DEBUG ((EFI_D_INFO, "*** FfsSetPosition: Start of func ***\n"));
 
+  //
   // Grab private data associated with This.
+  //
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
 
+  //
   // Check for the invalid condition that This is a directory and the position
   // is non-zero. This has the effect of only allowing directory reads to be 
   // restarted.
+  //
   if (PrivateFile->IsDirectory && Position != 0) {
     return EFI_UNSUPPORTED;
   }
 
-  // Set the position in the private data structures.
   if (Position == END_OF_FILE_POSITION) {
-    // Set to the end-of-file.
+    //
+    // Set to the end-of-file position.
+    //
     PrivateFile->Position = FvFileGetSize (PrivateFile->FileSystem->FirmwareVolume2,
                                            &(PrivateFile->FileInfo->NameGuid));
   } else {
-    // Set position.
+    //
+    // Set the position normally.
+    //
     PrivateFile->Position = Position;
 
+    //
     // Reset the key for GetNextFile as well as setting the position if need be.
+    //
     if (PrivateFile->IsDirectory && Position == 0) {
-      ZeroMem (PrivateFile->DirInfo->Key,
-               PrivateFile->FileSystem->FirmwareVolume2->KeySize);
+      ZeroMem (
+        PrivateFile->DirInfo->Key,
+        PrivateFile->FileSystem->FirmwareVolume2->KeySize);
     }
   }
 
@@ -1074,32 +1131,43 @@ FfsGetInfo (
 
   DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Start of func ***\n"));
 
+  //
   // Grab the associated private data.
+  //
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
 
-  // Check InformationType.
+  //
+  // Check InformationType to determine what kind of data to return.
+  //
   if (CompareGuid (InformationType, &gEfiFileInfoGuid)) {
-    // Requesting EFI_FILE_INFO.
     DEBUG ((EFI_D_INFO, "*** FfsGetInfo: EFI_FILE_INFO request ***\n"));
 
+    //
     // Determine if the size of Buffer is adequate, and if not, break so we can
     // return an error and calculate the needed size;
+    //
     DataSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_FILENAME;
 
     if (*BufferSize < DataSize) {
-      // Error condition.
+      //
+      // Error condition. The buffer size is too small.
+      //
       *BufferSize = DataSize;
       Status = EFI_BUFFER_TOO_SMALL;
     } else {
+      //
       // Allocate and fill out an EFI_FILE_INFO instance for this file.
-      FileInfo = AllocateZeroPool (DataSize);
-      FileInfo->Size = DataSize;
-      FileInfo->CreateTime = mModuleLoadTime;
-      FileInfo->LastAccessTime = mModuleLoadTime;
+      //
+      FileInfo                   = AllocateZeroPool (DataSize);
+      FileInfo->Size             = DataSize;
+      FileInfo->CreateTime       = mModuleLoadTime;
+      FileInfo->LastAccessTime   = mModuleLoadTime;
       FileInfo->ModificationTime = mModuleLoadTime;
-      FileInfo->Attribute = EFI_FILE_READ_ONLY;
+      FileInfo->Attribute        = EFI_FILE_READ_ONLY;
 
-      // Copy in file name.
+      //
+      // Copy in the file name from private data.
+      //
       FileName = AllocateZeroPool (SIZE_OF_FILENAME);
       UnicodeSPrint (FileName,
                      SIZE_OF_FILENAME,
@@ -1108,54 +1176,74 @@ FfsGetInfo (
       StrCpy (FileInfo->FileName, FileName);
       FreePool (FileName);
 
+      //
       // Set the next params based on whether the file is a directory or not.
+      //
       if (PrivateFile->IsDirectory) {
-        // Calculate size of the directory.
+        //
+        // Calculate size of the directory by summing the filesizes of each
+        // file.
+        //
         FileInfo->FileSize = FvGetVolumeSize (
                                PrivateFile->FileSystem->FirmwareVolume2);
 
-        // Update the Attributes field and calculate the size.
-        if (PrivateFile->IsDirectory) {
-          FileInfo->Attribute |= EFI_FILE_DIRECTORY;
-        }
+        //
+        // Update the Attributes field to reflect that this file is also a
+        // directory.
+        //
+        FileInfo->Attribute |= EFI_FILE_DIRECTORY;
       } else {
-        // Calculate the size of the file.
-        FileInfo->FileSize = FvFileGetSize (PrivateFile->FileSystem->FirmwareVolume2,
-                                            &(PrivateFile->FileInfo->NameGuid));
+        FileInfo->FileSize = FvFileGetSize (
+                               PrivateFile->FileSystem->FirmwareVolume2,
+                               &(PrivateFile->FileInfo->NameGuid));
       }
 
+      //
       // Use the same value for PhysicalSize as FileSize calculated beforehand.
+      // PhysicalSize is just an analogue of FileSize.
+      //
       FileInfo->PhysicalSize = FileInfo->FileSize;
 
+      //
       // Copy the memory to Buffer, set the output value of BufferSize, and
       // free the temporary data structure.
+      //
       CopyMem (Buffer, FileInfo, DataSize);
       *BufferSize = DataSize;
       FreePool (FileInfo);
       Status = EFI_SUCCESS;
     }
   } else if (CompareGuid (InformationType, &gEfiFileSystemInfoGuid)) {
-    // Requesting EFI_FILE_SYSTEM_INFO.
     DEBUG ((EFI_D_INFO, "*** FfsGetInfo: EFI_FILE_SYSTEM_INFO request ***\n"));
 
+    //
     // Determine if the size of Buffer is adequate, and if not, break so we can
-    // return an error and calculate the needed size;
+    // return an error and calculate the needed size.
+    //
     DataSize = SIZE_OF_EFI_FILE_SYSTEM_INFO + SIZE_OF_FILENAME;
 
     if (*BufferSize < DataSize) {
-      // Error condition.
+      //
+      // Error condition. The buffer passed in is too small to be used by this
+      // function. Set the required minimal buffer size and return.
+      //
       *BufferSize = DataSize;
       Status = EFI_BUFFER_TOO_SMALL;
     } else {
+      //
       // Allocate and fill out an EFI_FILE_INFO instance for this file.
+      //
       FsInfo = AllocateZeroPool (DataSize);
       FsInfo->Size = DataSize;
       FsInfo->ReadOnly = TRUE;
-      FsInfo->VolumeSize = FvGetVolumeSize (
-                             PrivateFile->FileSystem->FirmwareVolume2);
+      FsInfo->VolumeSize = FvGetVolumeSize (PrivateFile->FileSystem->FirmwareVolume2);
       FsInfo->FreeSpace = 0;
       FsInfo->BlockSize = 512;
 
+      //
+      // Generate the volume name. This is of the format "FV2@0x...", where the
+      // location in memory of the Fv2 instance replaces "...".
+      //
       VolumeLabel = AllocateZeroPool (SIZE_OF_FV_LABEL);
       UnicodeSPrint (VolumeLabel,
                      SIZE_OF_FV_LABEL,
@@ -1164,15 +1252,19 @@ FfsGetInfo (
       StrCpy (FsInfo->VolumeLabel, VolumeLabel);
       FreePool (VolumeLabel);
       
+      //
       // Copy the memory to Buffer, set the output value of BufferSize, and
       // free the temporary data structure.
+      //
       CopyMem (Buffer, FsInfo, DataSize);
       *BufferSize = DataSize;
       FreePool (FsInfo);
       Status = EFI_SUCCESS;
     }
   } else {
-    // Invalid InformationType GUID.
+    //
+    // Invalid InformationType GUID, return that the call is unsupported.
+    //
     DEBUG ((EFI_D_INFO, "*** FfsGetInfo: Invalid request ***\n"));
     Status = EFI_UNSUPPORTED;
   }
@@ -1227,9 +1319,6 @@ FfsSetInfo (
   return EFI_WRITE_PROTECTED;
 }
 
-EFI_STATUS
-EFIAPI
-FfsFlush (IN EFI_FILE_PROTOCOL *This)
 /**
   Flushes all modified data associated with a file to a device.
 
@@ -1245,6 +1334,9 @@ FfsFlush (IN EFI_FILE_PROTOCOL *This)
   @retval EFI_VOLUME_FULL      The volume is full.
 
 **/
+EFI_STATUS
+EFIAPI
+FfsFlush (IN EFI_FILE_PROTOCOL *This)
 {
   DEBUG ((EFI_D_INFO, "*** FfsFlush: Unsupported ***\n"));
   return EFI_ACCESS_DENIED;
@@ -1278,8 +1370,10 @@ FfsNotificationEvent (
   FILE_SYSTEM_PRIVATE_DATA        *Private;
 
   while (TRUE) {
+    //
     // Grab the next FV2. If this is there are no more in the buffer, exit the
     // while loop and return.
+    //
     BufferSize = sizeof (HandleBuffer);
     Status = gBS->LocateHandle (
                     ByRegisterNotify,
@@ -1293,8 +1387,10 @@ FfsNotificationEvent (
       break;
     }
 
+    //
     // Check to see if SimpleFileSystem is already installed on this handle. If
     // the protocol is already installed, skip to the next entry.
+    //
     Status = gBS->HandleProtocol (
                     HandleBuffer,
                     &gEfiSimpleFileSystemProtocolGuid,
@@ -1305,8 +1401,10 @@ FfsNotificationEvent (
       continue;
     }
 
+    //
     // Allocate space for the private data structure. If this fails, move on to
     // the next entry.
+    //
     Private = AllocateCopyPool (
                 sizeof (FILE_SYSTEM_PRIVATE_DATA),
                 &mFileSystemPrivateDataTemplate
@@ -1316,7 +1414,9 @@ FfsNotificationEvent (
       continue;
     }
 
-    // Retrieve the FV2 protocol
+    //
+    // Retrieve the FV2 protocol.
+    //
     Status = gBS->HandleProtocol (
                     HandleBuffer,
                     &gEfiFirmwareVolume2ProtocolGuid,
@@ -1325,7 +1425,9 @@ FfsNotificationEvent (
 
     ASSERT_EFI_ERROR (Status);
 
-    // Install SimpleFileSystem on the handle
+    //
+    // Install SimpleFileSystem on the handle.
+    //
     Status = gBS->InstallMultipleProtocolInterfaces (
                     &HandleBuffer,
                     &gEfiSimpleFileSystemProtocolGuid,
