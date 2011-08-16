@@ -878,12 +878,13 @@ FfsRead (
   EFI_STATUS                    Status;
   FILE_PRIVATE_DATA             *PrivateFile, *NextFile;
   UINT64                        ReadStart;
-  UINTN                         FileSize;
+  UINTN                         FileSize, SectionInstance;
   EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
   EFI_GUID                      *NextFileGuid;
   VOID                          *FileContents, *FileReadStart;
   EFI_FV_FILETYPE               FoundType;
   EFI_FV_FILE_ATTRIBUTES        FileAttributes;
+  EFI_SECTION_TYPE              SectionType;
   UINT32                        AuthenticationStatus;
 
   Status = EFI_SUCCESS;
@@ -967,7 +968,17 @@ FfsRead (
       //
       // Read executable section.
       //       
-      // Fv2->ReadSection (..);
+      SectionType     = EFI_SECTION_PE32;
+      SectionInstance = 0;
+
+      Fv2->ReadSection (
+             Fv2,
+             &(PrivateFile->FileInfo->NameGuid),
+             SectionType,
+             SectionInstance,
+             &FileContents,
+             &FileSize,
+             &AuthenticationStatus);
     } else {
       //
       // Read from whole file.
