@@ -132,42 +132,6 @@ FvGetNumberOfFiles (
 }
 
 /**
-  Gets the size of the file named by the provided GUID in FileGuid.
-
-  @param  Fv2      A pointer to the firmware volume to search.
-  @param  FileGuid A GUID representing the file that the system is trying to access.
-
-  @retval The size of the file in bytes.
-
-**/
-UINTN
-FvFileGetSize (
-  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
-  IN EFI_GUID                      *FileGuid
-  )
-{
-  UINTN                  BufferSize;
-  UINT32                 AuthenticationStatus;
-  EFI_FV_FILETYPE        FoundType;
-  EFI_FV_FILE_ATTRIBUTES FileAttributes;
-
-  //
-  // When ReadFile is called with Buffer == NULL, the value returned in 
-  // BufferSize will be the size of the file.
-  //
-  Fv2->ReadFile (
-         Fv2,
-         FileGuid,
-         NULL,
-         &BufferSize,
-         &FoundType,
-         &FileAttributes,
-         &AuthenticationStatus);
-
-  return BufferSize;
-}
-
-/**
   Determines if the file identified by FileGuid is executable on the current system.
 
   @param  Fv2      A pointer to the firmware volume to search.
@@ -221,6 +185,61 @@ IsFileExecutable (
   }
 
   return Executable;
+}
+
+/**
+  Gets the size of the file named by the provided GUID in FileGuid.
+
+  @param  Fv2      A pointer to the firmware volume to search.
+  @param  FileGuid A GUID representing the file that the system is trying to access.
+
+  @retval The size of the file in bytes.
+
+**/
+UINTN
+FvFileGetSize (
+  IN EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2,
+  IN EFI_GUID                      *FileGuid
+  )
+{
+  UINTN                  BufferSize, SectionInstance;
+  UINT32                 AuthenticationStatus;
+  EFI_FV_FILETYPE        FoundType;
+  EFI_FV_FILE_ATTRIBUTES FileAttributes;
+  EFI_SECTION_TYPE       SectionType;
+
+  if (IsFileExecutable (Fv2, FileGuid)) {
+    //
+    // When ReadSection is called with Buffer == NULL, the value returned in
+    // BufferSize will be the size of the section.
+    //
+    SectionType     = EFI_SECTION_PE32;
+    SectionInstance = 0;
+
+    Fv2->ReadSection (
+           Fv2,
+           FileGuid,
+           SectionType,
+           SectionInstance,
+           NULL,
+           &BufferSize,
+           &AuthenticationStatus);
+  } else {
+    //
+    // When ReadFile is called with Buffer == NULL, the value returned in 
+    // BufferSize will be the size of the file.
+    //
+    Fv2->ReadFile (
+           Fv2,
+           FileGuid,
+           NULL,
+           &BufferSize,
+           &FoundType,
+           &FileAttributes,
+           &AuthenticationStatus);
+  }
+
+  return BufferSize;
 }
 
 /**
