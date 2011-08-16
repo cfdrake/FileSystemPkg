@@ -207,6 +207,10 @@ FvFileGetSize (
   EFI_FV_FILETYPE        FoundType;
   EFI_FV_FILE_ATTRIBUTES FileAttributes;
   EFI_SECTION_TYPE       SectionType;
+  VOID                   *Buffer;
+
+  Buffer = NULL;
+  BufferSize = 0;
 
   if (IsFileExecutable (Fv2, FileGuid)) {
     //
@@ -221,9 +225,11 @@ FvFileGetSize (
            FileGuid,
            SectionType,
            SectionInstance,
-           NULL,
+           &Buffer,
            &BufferSize,
            &AuthenticationStatus);
+
+    FreePool (Buffer);
   } else {
     //
     // When ReadFile is called with Buffer == NULL, the value returned in 
@@ -877,8 +883,7 @@ FfsRead (
 {
   EFI_STATUS                    Status;
   FILE_PRIVATE_DATA             *PrivateFile, *NextFile;
-  UINT64                        ReadStart;
-  UINTN                         FileSize, SectionInstance;
+  UINTN                         ReadStart, FileSize, SectionInstance;
   EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
   EFI_GUID                      *NextFileGuid;
   VOID                          *FileContents, *FileReadStart;
@@ -895,7 +900,7 @@ FfsRead (
   //
   PrivateFile = FILE_PRIVATE_DATA_FROM_THIS (This);
   Fv2         = PrivateFile->FileSystem->FirmwareVolume2;
-  ReadStart   = PrivateFile->Position;
+  ReadStart   = (UINTN) PrivateFile->Position;
 
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start reading from %d ***\n", ReadStart));
 
