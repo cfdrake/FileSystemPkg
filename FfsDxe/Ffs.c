@@ -858,9 +858,14 @@ FfsRead (
 {
   EFI_STATUS                    Status;
   FILE_PRIVATE_DATA             *PrivateFile, *NextFile;
-  UINT64                        ReadStart, FileSize;
+  UINT64                        ReadStart;
+  UINTN                         FileSize;
   EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv2;
   EFI_GUID                      *NextFileGuid;
+  VOID                          *FileContents, *FileReadStart;
+  EFI_FV_FILETYPE               FoundType;
+  EFI_FV_FILE_ATTRIBUTES        FileAttributes;
+  UINT32                        AuthenticationStatus;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsRead: Start of func ***\n"));
@@ -931,6 +936,11 @@ FfsRead (
       *BufferSize = FileSize - ReadStart;
     }
 
+    //
+    // Allocate a buffer to use to hold the file's contents.
+    //
+    FileContents = AllocateZeroPool (FileSize);
+
     // Read the data.
     if (IsFileExecutable (
           PrivateFile->FileSystem->FirmwareVolume2,
@@ -943,8 +953,22 @@ FfsRead (
       //
       // Read from whole file.
       //
-      // Fv2->ReadFile (..);
+      Fv2->ReadFile (
+             Fv2,
+             &(PrivateFile->FileInfo->NameGuid),
+             &FileContents,
+             &FileSize,
+             &FoundType,
+             &FileAttributes,
+             &AuthenticationStatus);
     }
+
+    //
+    // Copy the requested segment of data from the file's contents.
+    //
+    FileReadStart = FileContents + ReadStart;
+    CopyMem (Buffer, FileReadStart, *BufferSize);
+    FreePool (FileContents);
 
     //
     // Update the file's position to be the original location added to the
