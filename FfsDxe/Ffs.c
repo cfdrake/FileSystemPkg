@@ -1347,13 +1347,12 @@ FfsFlush (IN EFI_FILE_PROTOCOL *This)
 //
 
 /**
-
   Callback function, notified when new FV2 volumes are mounted in the system.
-
-  @returns Nothing.
 
   @param Event   The EFI_EVENT that triggered this function call.
   @param Context The context in which this function was called.
+
+  @return Nothing.
 
 **/
 VOID
@@ -1442,13 +1441,12 @@ FfsNotificationEvent (
 }
 
 /**
-
   Entry point for the driver.
-
-  @returns EFI status code.
 
   @param ImageHandle ImageHandle of the loaded driver.
   @param SystemTable A Pointer to the EFI System Table.
+
+  @return EFI status code.
 
 **/
 EFI_STATUS
