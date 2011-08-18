@@ -11,10 +11,16 @@ instance from a simple file-like perspective.
 It was developed as a Google Summer of Code project by
 [Colin Drake](http://colinfdrake.com) over the summer of 2011.
 
+Source
+------
+This module is currently maintained at http://github.com/cfdrake/FileSystemPkg.
+
+Please checkout the `development` branch for the latest changes.
+
 Installation/Integration
 ------------------------
 First, download a recent `EDKII` release. `cd` to the root directory and download the
-FileSystemPkg sources.
+FileSystemPkg sources (either `master` or `development` branch).
 
     $ ...
     $ cd edk2
