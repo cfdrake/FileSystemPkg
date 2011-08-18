@@ -783,6 +783,7 @@ FfsOpen (
       DEBUG ((EFI_D_INFO, "FfsOpen: File found\n"));
       NewPrivateFile = GuidToFile (Guid, PrivateFile->FileSystem);
       *NewHandle = &(NewPrivateFile->File);
+      FreePool (Guid);
     } else {
       //
       // File not found.
@@ -827,7 +828,7 @@ FfsClose (IN EFI_FILE_PROTOCOL *This)
     FreePool (PrivateFile->DirInfo);
   } else {
     FreePool (PrivateFile->FileInfo);
-  }  
+  }
 
   FreePool (PrivateFile);*/
 
