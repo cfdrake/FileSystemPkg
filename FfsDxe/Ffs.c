@@ -741,10 +741,12 @@ FfsOpen (
   //
   if ((OpenMode & (EFI_FILE_MODE_READ | EFI_FILE_MODE_CREATE)) != EFI_FILE_MODE_READ) {
     DEBUG ((EFI_D_INFO, "FfsOpen: OpenMode must be Read\n"));
-    return EFI_WRITE_PROTECTED;
+    Status = EFI_WRITE_PROTECTED;
+    goto OpenDone;
   } else if (FileName == NULL || StrCmp (FileName, L"") == 0) {
     DEBUG ((EFI_D_INFO, "FfsOpen: Missing FileName!\n"));
-    return EFI_NOT_FOUND;
+    Status = EFI_NOT_FOUND;
+    goto OpenDone;
   }
 
   DEBUG ((EFI_D_INFO, "FfsOpen: Opening: %s\n", FileName));
@@ -764,15 +766,12 @@ FfsOpen (
 
     NewPrivateFile = AllocateNewRoot (PrivateFile->FileSystem);
     *NewHandle = &(NewPrivateFile->File);
-
-    return Status;
   } else if (StrCmp (CleanPath, L"..") == 0) {
     //
     // Open the parent directory. This is invalid on the filesystem.
     //
     DEBUG ((EFI_D_INFO, "FfsOpen: Open parent\n"));
-
-    return EFI_NOT_FOUND;
+    Status = EFI_NOT_FOUND;
   } else {
     //
     // Requested a file. Remove the extension from the file's basename.
@@ -812,6 +811,9 @@ FfsOpen (
   }
 
   DEBUG ((EFI_D_INFO, "FfsOpen: End of func\n"));
+
+OpenDone:
+
   return Status;
 }
 
@@ -931,7 +933,8 @@ FfsRead (
     if (*BufferSize < SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID) {
       DEBUG ((EFI_D_INFO, "*** FfsRead: Need a larger buffer\n"));
       *BufferSize = SIZE_OF_EFI_FILE_INFO + SIZE_OF_GUID;
-      return EFI_BUFFER_TOO_SMALL;
+      Status = EFI_BUFFER_TOO_SMALL;
+      goto ReadDone;
     }
 
     //
@@ -940,7 +943,8 @@ FfsRead (
     if (FvGetNumberOfFiles(PrivateFile->FileSystem->FirmwareVolume2) <= ReadStart) {
       DEBUG ((EFI_D_INFO, "*** FfsRead: At end of directory listing\n"));
       *BufferSize = 0;
-      return EFI_SUCCESS;
+      Status = EFI_SUCCESS;
+      goto ReadDone;
     }
 
     //
@@ -1030,6 +1034,9 @@ FfsRead (
   }
 
   DEBUG ((EFI_D_INFO, "*** FfsRead: End of func ***\n"));
+
+ReadDone:
+
   return Status;
 }
 
@@ -1084,8 +1091,10 @@ FfsGetPosition (
   OUT UINT64 *Position
   )
 {
+  EFI_STATUS        Status;
   FILE_PRIVATE_DATA *PrivateFile;
 
+  Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "*** FfsGetPosition: Start of func ***\n"));
 
   //
@@ -1097,12 +1106,16 @@ FfsGetPosition (
   // Ensure that this function is not called on a directory.
   //
   if (PrivateFile->IsDirectory) {
-    return EFI_UNSUPPORTED;
+    Status = EFI_UNSUPPORTED;
+    goto GetPosDone;
   }
 
   DEBUG ((EFI_D_INFO, "*** FfsGetPosition: End of func ***\n"));
   *Position = PrivateFile->Position;
-  return EFI_SUCCESS;
+
+GetPosDone:
+
+  return Status;
 }
 
 /**
@@ -1125,6 +1138,7 @@ FfsSetPosition (
   IN UINT64 Position
   )
 {
+  EFI_STATUS        Status;
   FILE_PRIVATE_DATA *PrivateFile;
 
   DEBUG ((EFI_D_INFO, "*** FfsSetPosition: Start of func ***\n"));
@@ -1140,7 +1154,8 @@ FfsSetPosition (
   // restarted.
   //
   if (PrivateFile->IsDirectory && Position != 0) {
-    return EFI_UNSUPPORTED;
+    Status = EFI_UNSUPPORTED;
+    goto SetPosDone;
   }
 
   if (Position == END_OF_FILE_POSITION) {
@@ -1166,6 +1181,9 @@ FfsSetPosition (
   }
 
   DEBUG ((EFI_D_INFO, "*** FfsSetPosition: End of func ***\n"));
+
+SetPosDone:
+
   return EFI_SUCCESS;
 }
 
