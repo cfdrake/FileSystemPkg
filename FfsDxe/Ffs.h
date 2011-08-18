@@ -85,7 +85,6 @@ struct _FILE_SYSTEM_PRIVATE_DATA {
 
   EFI_SIMPLE_FILE_SYSTEM_PROTOCOL SimpleFileSystem; ///< Holds the SFS interface.
   EFI_FIRMWARE_VOLUME2_PROTOCOL   *FirmwareVolume2; ///< Pointer to the filesystem's FV2 instance.
-  FILE_PRIVATE_DATA               *Root;            ///< Pointer to the root directory of the filesystem.
 };
 
 ///
@@ -131,7 +130,6 @@ struct _FILE_PRIVATE_DATA {
 /// directories rather than files.
 ///
 struct _DIR_INFO {
-  LIST_ENTRY Children; ///< List of children files in this directory.
   VOID       *Key;     ///< Search key to keep track of directory index position.
 };
 

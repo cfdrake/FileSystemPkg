@@ -45,7 +45,6 @@ FILE_SYSTEM_PRIVATE_DATA mFileSystemPrivateDataTemplate = {
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION,
     FfsOpenVolume
   },
-  NULL,
   NULL
 };
 
@@ -480,6 +479,46 @@ GuidToFile (
 }
 
 /**
+**/
+FILE_PRIVATE_DATA *
+AllocateNewRoot (
+  IN FILE_SYSTEM_PRIVATE_DATA *Fs
+  )
+{
+  FILE_PRIVATE_DATA *PrivateFile;
+  DIR_INFO          *RootInfo;
+
+  //
+  // Copy data from the template to a new private file instance.
+  //
+  PrivateFile = NULL;
+  PrivateFile = AllocateCopyPool (
+                  sizeof (FILE_PRIVATE_DATA),
+                  (VOID *) &mFilePrivateDataTemplate
+                  );
+
+  if (PrivateFile == NULL) {
+    goto RootDone;
+  }
+
+  RootInfo      = AllocateZeroPool (sizeof (DIR_INFO));
+  RootInfo->Key = AllocateZeroPool (sizeof (Fs->FirmwareVolume2->KeySize));
+
+  //
+  // Fill out the rest of the private file data and assign it's File attribute
+  // to Root.
+  //
+  PrivateFile->FileSystem  = Fs;
+  PrivateFile->FileName    = L"\\";
+  PrivateFile->IsDirectory = TRUE;
+  PrivateFile->DirInfo     = RootInfo;
+
+RootDone:
+
+  return PrivateFile;
+}
+
+/**
   Removes the last directory or file entry in a path by changing the last
   L'\' to a CHAR_NULL.
 
@@ -615,55 +654,27 @@ FfsOpenVolume (
   EFI_STATUS               Status;
   FILE_SYSTEM_PRIVATE_DATA *PrivateFileSystem;
   FILE_PRIVATE_DATA        *PrivateFile;
-  DIR_INFO                 *RootInfo;
   
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: Start\n"));
 
   //
-  // Get private structure for This.
+  // Get private structure for This and allocate a new root instance.
   //
   PrivateFileSystem = FILE_SYSTEM_PRIVATE_DATA_FROM_THIS (This);
-
-  //
-  // Allocate a new private FILE_PRIVATE_DATA instance.
-  //
-  PrivateFile = NULL;
-  PrivateFile = AllocateCopyPool (
-                  sizeof (FILE_PRIVATE_DATA),
-                  (VOID *) &mFilePrivateDataTemplate
-                  );
+  PrivateFile       = AllocateNewRoot (PrivateFileSystem);
 
   if (PrivateFile == NULL) {
-    DEBUG ((EFI_D_ERROR, "FfsOpenVolume: Couldn't allocate private file\n"));
-    return EFI_OUT_OF_RESOURCES;
+    //
+    // Error allocating a new instance.
+    //
+    Status = EFI_OUT_OF_RESOURCES;
+  } else {
+    //
+    // Set outgoing param and status.
+    //
+    *Root = &(PrivateFile->File);
+    Status = EFI_SUCCESS;
   }
-
-  DEBUG ((EFI_D_INFO, "FfsOpenVolume: Allocate private file struct\n"));
-
-  //
-  // Fill out the rest of the private file data and assign it's File attribute
-  // to Root.
-  //
-  PrivateFile->FileSystem  = PrivateFileSystem;
-  PrivateFile->FileName    = L"\\";
-  PrivateFile->IsDirectory = TRUE;
-  PrivateFile->FileInfo    = NULL;
-
-  RootInfo                 = AllocateZeroPool (sizeof (DIR_INFO));
-  RootInfo->Key            = AllocateZeroPool (sizeof (PrivateFileSystem->
-                                                       FirmwareVolume2->
-                                                       KeySize));
-  InitializeListHead (&(RootInfo->Children));
-  PrivateFile->DirInfo     = RootInfo;
-  PrivateFile->Position    = 0;
-
-  //
-  // Set the root folder of the file system and the outgoing paramater Root,
-  // and set the status code to return to EFI_SUCCESS.
-  //
-  PrivateFileSystem->Root = PrivateFile;
-  *Root = &(PrivateFile->File);
-  Status = EFI_SUCCESS;
 
   DEBUG ((EFI_D_INFO, "FfsOpenVolume: End of func\n"));
   return Status;
@@ -712,7 +723,6 @@ FfsOpen (
   EFI_STATUS               Status;
   FILE_PRIVATE_DATA        *PrivateFile, *NewPrivateFile;
   EFI_GUID                 *Guid;
-  FILE_SYSTEM_PRIVATE_DATA *FileSystem;
   CHAR16                   *CleanPath, *StrippedFileName;
 
   Status = EFI_SUCCESS;
@@ -746,8 +756,8 @@ FfsOpen (
     //
     DEBUG ((EFI_D_INFO, "FfsOpen: Open root\n"));
 
-    FileSystem = PrivateFile->FileSystem;
-    *NewHandle = &(FileSystem->Root->File);
+    NewPrivateFile = AllocateNewRoot (PrivateFile->FileSystem);
+    *NewHandle = &(NewPrivateFile->File);
 
     return Status;
   } else if (StrCmp (CleanPath, L"..") == 0) {
@@ -824,13 +834,13 @@ FfsClose (IN EFI_FILE_PROTOCOL *This)
   //
   // Free up all of the private data.
   //
-  /*if (PrivateFile->IsDirectory) {
+  if (PrivateFile->IsDirectory) {
     FreePool (PrivateFile->DirInfo);
   } else {
     FreePool (PrivateFile->FileInfo);
   }
 
-  FreePool (PrivateFile);*/
+  FreePool (PrivateFile);
 
   DEBUG ((EFI_D_INFO, "*** FfsClose: End of func ***\n"));
   return EFI_SUCCESS;
