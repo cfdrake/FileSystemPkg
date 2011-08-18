@@ -479,6 +479,12 @@ GuidToFile (
 }
 
 /**
+  Returns a FILE_PRIVATE_DATA instance for a new instance of the root directory.
+
+  @param  Fs Private data for the filesystem the directory is to be a part of.
+
+  @return FILE_PRIVATE_DATA instance representing the root directory.
+
 **/
 FILE_PRIVATE_DATA *
 AllocateNewRoot (
