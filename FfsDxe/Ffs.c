@@ -729,7 +729,7 @@ FfsOpen (
   EFI_STATUS               Status;
   FILE_PRIVATE_DATA        *PrivateFile, *NewPrivateFile;
   EFI_GUID                 *Guid;
-  CHAR16                   *CleanPath, *StrippedFileName;
+  CHAR16                   *CleanPath, *Ext, *GuidAsString;
 
   Status = EFI_SUCCESS;
   DEBUG ((EFI_D_INFO, "FfsOpen: Start\n"));
@@ -774,28 +774,43 @@ FfsOpen (
     Status = EFI_NOT_FOUND;
   } else {
     //
-    // Requested a file. Remove the extension from the file's basename.
+    // Perform basic checks to ensure we don't go through a lot of code for
+    // nothing. First of all, ensure the filename length is ok.
     //
-    StrippedFileName = AllocateZeroPool (SIZE_OF_FILENAME);
-    CopyMem (StrippedFileName, CleanPath, SIZE_OF_FILENAME);
-
-    if (StrLen (StrippedFileName) == LENGTH_OF_FILENAME) {
-      DEBUG ((EFI_D_INFO, "FfsOpen: Called on a GUID-length Filename\n"));
-      StrippedFileName[LENGTH_OF_FILENAME - 4] = '\0';
+    if (StrLen(CleanPath) != LENGTH_OF_FILENAME) {
+      DEBUG ((EFI_D_INFO, "Filename isn't 40 characters\n"));
+      Status = EFI_NOT_FOUND;
+      goto OpenDone;
     }
 
-    DEBUG ((EFI_D_INFO, "FfsOpen: Looking for GUID: %s\n", StrippedFileName));
+    //
+    // Check for a valid file extension, first of all.
+    //
+    Ext = CleanPath + LENGTH_OF_FILENAME - 4;
+
+    if (StrCmp (Ext, L".ffs") != 0 && StrCmp (Ext, L".efi") != 0) {
+      DEBUG ((EFI_D_INFO, "Invalid extension\n"));
+      Status = EFI_NOT_FOUND;
+      goto OpenDone;
+    }
 
     //
-    // Check for the filename on the FV2 volume.
+    // Check everything up until the extension to make sure it is a GUID used
+    // in this specific FV2.
     //
-    Guid = FvGetFile (PrivateFile->FileSystem->FirmwareVolume2, StrippedFileName);
+    GuidAsString = AllocateZeroPool (SIZE_OF_GUID);
+    CopyMem (GuidAsString, CleanPath, SIZE_OF_GUID);
+    GuidAsString[36] = '\0';
+
+    DEBUG ((EFI_D_INFO, "Looking for %s\n", GuidAsString));
+    Guid = FvGetFile (PrivateFile->FileSystem->FirmwareVolume2, GuidAsString);
 
     if (Guid != NULL) {
       //
       // Found file.
       //
       DEBUG ((EFI_D_INFO, "FfsOpen: File found\n"));
+
       NewPrivateFile = GuidToFile (Guid, PrivateFile->FileSystem);
       *NewHandle = &(NewPrivateFile->File);
       FreePool (Guid);
@@ -807,7 +822,7 @@ FfsOpen (
       Status = EFI_NOT_FOUND;
     }
 
-    FreePool (StrippedFileName);
+    FreePool (GuidAsString);
   }
 
   DEBUG ((EFI_D_INFO, "FfsOpen: End of func\n"));
