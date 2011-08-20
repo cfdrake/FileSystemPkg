@@ -783,17 +783,18 @@ FfsOpen (
       goto OpenDone;
     }
 
+
     //
-    // Check for a valid file extension, first of all.
+    // Ensure the file extension is either .ffs or .efi.
     //
     Ext = CleanPath + LENGTH_OF_FILENAME - 4;
 
     if (StrCmp (Ext, L".ffs") != 0 && StrCmp (Ext, L".efi") != 0) {
-      DEBUG ((EFI_D_INFO, "Invalid extension\n"));
+      DEBUG ((EFI_D_INFO, "Invalid extension (not ffs or efi)\n"));
       Status = EFI_NOT_FOUND;
       goto OpenDone;
     }
-
+      
     //
     // Check everything up until the extension to make sure it is a GUID used
     // in this specific FV2.
@@ -805,14 +806,27 @@ FfsOpen (
     DEBUG ((EFI_D_INFO, "Looking for %s\n", GuidAsString));
     Guid = FvGetFile (PrivateFile->FileSystem->FirmwareVolume2, GuidAsString);
 
+    //
+    // Grab the file.
+    //
     if (Guid != NULL) {
       //
       // Found file.
       //
       DEBUG ((EFI_D_INFO, "FfsOpen: File found\n"));
-
       NewPrivateFile = GuidToFile (Guid, PrivateFile->FileSystem);
-      *NewHandle = &(NewPrivateFile->File);
+
+      //
+      // Check that the file we got has the correct extension for its contents.
+      //
+      if ((StrCmp (Ext, L".ffs") == 0 && !NewPrivateFile->FileInfo->IsExecutable) ||
+          (StrCmp (Ext, L".efi") == 0 &&  NewPrivateFile->FileInfo->IsExecutable)) {
+        *NewHandle = &(NewPrivateFile->File);
+      } else {
+        DEBUG ((EFI_D_INFO, "Invalid extension for contents\n"));
+        Status = EFI_NOT_FOUND;
+      }
+      
       FreePool (Guid);
     } else {
       //
@@ -994,6 +1008,7 @@ FfsRead (
     // Cap off the amount of data read so we don't go past the EOF.
     //
     if (ReadStart + *BufferSize > FileSize) {
+      DEBUG ((EFI_D_INFO, "Increasing buffersize for read...\n"));
       *BufferSize = FileSize - ReadStart;
     }
 
@@ -1048,7 +1063,7 @@ FfsRead (
     PrivateFile->Position = ReadStart + *BufferSize;
   }
 
-  DEBUG ((EFI_D_INFO, "*** FfsRead: End of func ***\n"));
+  DEBUG ((EFI_D_INFO, "*** FfsRead: End of reading %s ***\n", PrivateFile->FileName));
 
 ReadDone:
 
