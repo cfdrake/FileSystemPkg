@@ -783,7 +783,6 @@ FfsOpen (
       goto OpenDone;
     }
 
-
     //
     // Ensure the file extension is either .ffs or .efi.
     //
