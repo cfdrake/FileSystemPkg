@@ -515,7 +515,7 @@ AllocateNewRoot (
   // to Root.
   //
   PrivateFile->FileSystem  = Fs;
-  PrivateFile->FileName    = L"\\";
+  PrivateFile->FileName    = L"";
   PrivateFile->IsDirectory = TRUE;
   PrivateFile->DirInfo     = RootInfo;
 
