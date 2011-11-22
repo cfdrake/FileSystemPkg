@@ -515,7 +515,7 @@ AllocateNewRoot (
   // to Root.
   //
   PrivateFile->FileSystem  = Fs;
-  PrivateFile->FileName    = L"\\";
+  PrivateFile->FileName    = L"";
   PrivateFile->IsDirectory = TRUE;
   PrivateFile->DirInfo     = RootInfo;
 
@@ -621,6 +621,13 @@ PathCleanUpDirectories(
   }
   if ((TempString = StrStr(Path, L"\\.")) != NULL && *(TempString + 2) == CHAR_NULL) {
     *TempString = CHAR_NULL;
+  }
+
+  //
+  // Remove '\' at the beginning of the path
+  //
+  while ((Path[0] == L'\\') && (Path[1] != CHAR_NULL)) {
+    CopyMem (Path, Path + 1, StrSize (Path) - sizeof (L'\\'));
   }
 
   return (Path);
